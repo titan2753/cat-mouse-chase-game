@@ -1,0 +1,43 @@
+<h2>游戏用什么视角？</h2>
+<p class="subtitle">这决定了地图怎么显示，角色怎么移动</p>
+
+<div class="cards">
+  <div class="card" data-choice="top-down" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #2d2d2d; display: flex; align-items: center; justify-content: center; height: 120px; position: relative;">
+      <div style="position: absolute; top: 20px; left: 20px; font-size: 24px;">🐱</div>
+      <div style="position: absolute; bottom: 30px; right: 25px; font-size: 24px;">🐭</div>
+      <div style="position: absolute; top: 40px; left: 60px; width: 30px; height: 30px; background: #8B4513; border-radius: 4px;"></div>
+      <div style="position: absolute; bottom: 50px; left: 40px; width: 20px; height: 20px; background: #FFD700; border-radius: 50%;"></div>
+    </div>
+    <div class="card-body">
+      <h3>俯视角（推荐）</h3>
+      <p>像迷宫一样，能看到整个地图。猫和老鼠都可以上下左右移动，更容易看到对方位置，策略性强。类似Pac-Man。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="side-view" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 60%, #228B22 60%); display: flex; align-items: flex-end; justify-content: space-between; height: 120px; padding: 10px;">
+      <div style="font-size: 28px;">🐱</div>
+      <div style="display: flex; gap: 20px;">
+        <div style="width: 15px; height: 40px; background: #8B4513;"></div>
+        <div style="width: 15px; height: 40px; background: #8B4513;"></div>
+      </div>
+      <div style="font-size: 28px;">🐭</div>
+    </div>
+    <div class="card-body">
+      <h3>横版侧视角</h3>
+      <p>像超级马里奥那样，角色在平台上左右移动和跳跃。动作感更强，但只能看到部分地图。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+  <h3 style="margin-bottom: 10px;">💡 我的建议</h3>
+  <p>推荐<strong>俯视角</strong>，因为：</p>
+  <ul style="margin-left: 20px;">
+    <li>能看到整个地图，更容易找到钥匙和逃生门</li>
+    <li>追逐策略更清晰——能看到猫在哪</li>
+    <li>开发更简单，不需要做跳跃物理</li>
+    <li>WASD移动更直观</li>
+  </ul>
+</div>

@@ -1,0 +1,101 @@
+<h2>《你追我赶》游戏设计方案总结</h2>
+<p class="subtitle">父女合作的网页追逐游戏</p>
+
+<div style="background: linear-gradient(135deg, #FFB6C1, #DDA0DD); padding: 25px; border-radius: 15px; margin-bottom: 20px;">
+  <h3 style="color: #8B008B; margin-bottom: 15px;">🎯 项目概述</h3>
+  <div style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 10px; color: #333;">
+    <strong>项目名称：</strong>你追我赶 - 猫和老鼠追逐游戏<br>
+    <strong>目标用户：</strong>9岁女儿和父亲一起开发学习<br>
+    <strong>技术栈：</strong>Phaser.js + HTML/CSS/JS<br>
+    <strong>运行平台：</strong>网页（兼容电脑、手机、平板）
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+  <div style="background: #FFF0F5; padding: 15px; border-radius: 10px; border: 2px solid #FFB6C1;">
+    <h4 style="color: #8B008B;">🎨 视觉设计</h4>
+    <ul style="color: #666; margin-left: 15px; line-height: 1.8;">
+      <li>风格：《猫和老鼠》动画片风格</li>
+      <li>角色：SVG矢量卡通（精致可动画）</li>
+      <li>配色：粉色+紫色渐变主题</li>
+      <li>视角：俯视角迷宫</li>
+      <li>装饰：星星、花朵、蝴蝶结等可爱元素</li>
+    </ul>
+  </div>
+
+  <div style="background: #E8F5E9; padding: 15px; border-radius: 10px; border: 2px solid #81C784;">
+    <h4 style="color: #388E3C;">🎮 游戏机制</h4>
+    <ul style="color: #666; margin-left: 15px; line-height: 1.8;">
+      <li>角色选择：老鼠（逃生者）或猫（抓捕者）</li>
+      <li>老鼠获胜：拿到钥匙 → 开门逃跑</li>
+      <li>猫获胜：抓住老鼠</li>
+      <li>AI对手：人机控制另一方</li>
+      <li>无尽关卡：难度逐步提升</li>
+    </ul>
+  </div>
+
+  <div style="background: #E3F2FD; padding: 15px; border-radius: 10px; border: 2px solid #64B5F6;">
+    <h4 style="color: #1976D2;">📦 道具系统</h4>
+    <ul style="color: #666; margin-left: 15px; line-height: 1.8;">
+      <li>🔑 钥匙：打开逃生门</li>
+      <li>⏱️ 减速：猫变慢5秒</li>
+      <li>❄️ 冰冻：猫停止3秒</li>
+      <li>🪤 陷阱：困住猫一段时间</li>
+      <li>宝箱随机掉落道具</li>
+    </ul>
+  </div>
+
+  <div style="background: #FFF3E0; padding: 15px; border-radius: 10px; border: 2px solid #FFB74D;">
+    <h4 style="color: #F57C00;">🧱 障碍物系统</h4>
+    <ul style="color: #666; margin-left: 15px; line-height: 1.8;">
+      <li>墙壁障碍：固定不可穿越</li>
+      <li>家具障碍：桌椅沙发（猫和老鼠风格）</li>
+      <li>移动障碍：扫地机器人等</li>
+      <li>障碍物随关卡递增</li>
+    </ul>
+  </div>
+</div>
+
+<div style="background: #F5F5F5; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+  <h4 style="color: #333;">📈 难度递进（综合模式）</h4>
+  <table style="width: 100%; color: #666; margin-top: 10px;">
+    <tr style="background: #FFB6C1;">
+      <th style="padding: 8px; text-align: left;">关卡</th>
+      <th style="padding: 8px;">地图大小</th>
+      <th style="padding: 8px;">AI速度</th>
+      <th style="padding: 8px;">障碍物</th>
+      <th style="padding: 8px;">宝箱数量</th>
+    </tr>
+    <tr><td style="padding: 8px;">1-5</td><td style="padding: 8px; text-align: center;">小</td><td style="padding: 8px; text-align: center;">慢</td><td style="padding: 8px; text-align: center;">墙壁</td><td style="padding: 8px; text-align: center;">3</td></tr>
+    <tr><td style="padding: 8px;">6-10</td><td style="padding: 8px; text-align: center;">中</td><td style="padding: 8px; text-align: center;">正常</td><td style="padding: 8px; text-align: center;">墙壁+家具</td><td style="padding: 8px; text-align: center;">4</td></tr>
+    <tr><td style="padding: 8px;">11-15</td><td style="padding: 8px; text-align: center;">大</td><td style="padding: 8px; text-align: center;">快</td><td style="padding: 8px; text-align: center;">全部</td><td style="padding: 8px; text-align: center;">5</td></tr>
+    <tr><td style="padding: 8px;">16+</td><td style="padding: 8px; text-align: center;">超大</td><td style="padding: 8px; text-align: center;">超快</td><td style="padding: 8px; text-align: center;">全部+更多</td><td style="padding: 8px; text-align: center;">6+</td></tr>
+  </table>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+  <div style="background: #E8E8F0; padding: 15px; border-radius: 10px;">
+    <h4 style="color: #8B008B;">🖥️ 电脑版控制</h4>
+    <ul style="color: #666; margin-left: 15px; line-height: 1.8;">
+      <li>WASD：移动方向</li>
+      <li>数字键1-4：使用道具</li>
+      <li>右下角显示键盘按键提示</li>
+    </ul>
+  </div>
+  <div style="background: #E8E8F0; padding: 15px; border-radius: 10px;">
+    <h4 style="color: #8B008B;">📱 手机/平板控制</h4>
+    <ul style="color: #666; margin-left: 15px; line-height: 1.8;">
+      <li>左下角：虚拟摇杆（拖动控制方向）</li>
+      <li>右下角：道具按钮（点击使用）</li>
+      <li>自动检测设备切换控制方式</li>
+    </ul>
+  </div>
+</div>
+
+<div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+  <h4 style="color: #fff;">✅ 已确认的设计决策</h4>
+</div>
+
+<p style="color: #8B008B; font-weight: bold; text-align: center; margin-top: 15px;">
+以上是完整的设计方案总结，确认无误后我们将写入正式设计文档并开始开发计划。
+</p>

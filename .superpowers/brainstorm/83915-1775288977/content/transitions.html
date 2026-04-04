@@ -1,0 +1,59 @@
+<h2>转场动画与游戏结束画面</h2>
+<p class="subtitle">角色选择后的转场 + 获胜/失败的结束画面</p>
+
+<div class="mockup">
+  <div class="mockup-header">转场动画：选择角色 → 进入游戏</div>
+  <div class="mockup-body" style="background: linear-gradient(135deg, #FFB6C1, #DDA0DD); padding: 20px; min-height: 200px; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+    <div style="text-align: center;">
+      <div style="font-size: 60px; margin-bottom: 20px;">🐭 ➡️ 🏃💨 ➡️ 🎮</div>
+      <div style="font-size: 16px; color: #8B008B; font-weight: bold;">动画效果示意</div>
+      <div style="margin-top: 15px; color: #666; line-height: 1.8;">
+        1. 选择角色后，角色放大跳出<br>
+        2. 快速奔跑动画（留下灰尘 trail）<br>
+        3. 屏幕淡出，地图淡入<br>
+        4. "关卡 X" 字样闪烁出现
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display: flex; gap: 20px; margin-top: 25px;">
+  <!-- 获胜画面 -->
+  <div style="flex: 1; background: linear-gradient(135deg, #FFD700, #FFA500); border-radius: 15px; padding: 20px; text-align: center;">
+    <div style="font-size: 14px; color: #fff; margin-bottom: 10px; font-weight: bold;">🎉 获胜画面（老鼠逃跑成功）</div>
+    <div style="background: rgba(255,255,255,0.9); border-radius: 10px; padding: 15px;">
+      <div style="font-size: 50px;">🎊 🐭 ✨ 🎊</div>
+      <div style="font-size: 18px; color: #FFD700; font-weight: bold; margin-top: 10px;">恭喜！成功逃脱！</div>
+      <div style="font-size: 14px; color: #666; margin-top: 8px;">🎊 五彩烟花绽放 🎵 欢快音乐 🎊</div>
+      <button style="margin-top: 15px; background: #4CAF50; color: white; padding: 10px 25px; border-radius: 20px; border: none; font-size: 14px;">
+        下一关 ▶
+      </button>
+    </div>
+  </div>
+
+  <!-- 失败画面 -->
+  <div style="flex: 1; background: linear-gradient(135deg, #87CEEB, #6495ED); border-radius: 15px; padding: 20px; text-align: center;">
+    <div style="font-size: 14px; color: #fff; margin-bottom: 10px; font-weight: bold;">😢 失败画面（老鼠被抓）</div>
+    <div style="background: rgba(255,255,255,0.9); border-radius: 10px; padding: 15px;">
+      <div style="font-size: 50px;">😿 🧳 💔</div>
+      <div style="font-size: 18px; color: #6495ED; font-weight: bold; margin-top: 10px;">哎呀！被抓住了！</div>
+      <div style="font-size: 14px; color: #666; margin-top: 8px;">💧 小老鼠哭泣 😿 悲伤音乐 💔</div>
+      <button style="margin-top: 15px; background: #9370DB; color: white; padding: 10px 25px; border-radius: 20px; border: none; font-size: 14px;">
+        再试一次 🔄
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 猫获胜画面 -->
+<div style="margin-top: 20px; background: linear-gradient(135deg, #FFA500, #FF8C00); border-radius: 15px; padding: 20px; text-align: center;">
+  <div style="font-size: 14px; color: #fff; margin-bottom: 10px; font-weight: bold;">🐱 猫获胜画面（抓住老鼠）</div>
+  <div style="background: rgba(255,255,255,0.9); border-radius: 10px; padding: 15px; display: inline-block;">
+    <div style="font-size: 50px;">😼 🎉 🐭</div>
+    <div style="font-size: 18px; color: #FF8C00; font-weight: bold; margin-top: 10px;">抓到了！喵喵得意！</div>
+    <div style="font-size: 14px; color: #666; margin-top: 8px;">🎉 猫得意洋洋 😼 欢快音乐 🎊</div>
+    <button style="margin-top: 15px; background: #4CAF50; color: white; padding: 10px 25px; border-radius: 20px; border: none; font-size: 14px;">
+      下一关 ▶
+    </button>
+  </div>
+</div>

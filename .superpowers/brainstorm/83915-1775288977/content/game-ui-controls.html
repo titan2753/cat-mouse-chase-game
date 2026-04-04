@@ -1,0 +1,133 @@
+<h2>游戏界面布局 - 优化控制提示</h2>
+<p class="subtitle">电脑：键盘按键样式 | 手机/平板：虚拟方向控制器</p>
+
+<div class="mockup">
+  <div class="mockup-header">电脑版界面（键盘控制）</div>
+  <div class="mockup-body" style="background: linear-gradient(135deg, #FFB6C1 0%, #E6E6FA 50%, #DDA0DD 100%); padding: 20px; min-height: 380px; position: relative; border-radius: 15px;">
+
+    <!-- 左上角按钮 -->
+    <div style="position: absolute; top: 15px; left: 15px; display: flex; gap: 8px;">
+      <button style="background: rgba(255,255,255,0.9); padding: 10px 18px; border-radius: 10px; border: 2px solid #FF69B4; cursor: pointer; font-size: 14px; color: #8B008B; box-shadow: 0 3px 10px rgba(0,0,0,0.15);">
+        ❌ 退出
+      </button>
+      <button style="background: rgba(255,255,255,0.9); padding: 10px 18px; border-radius: 10px; border: 2px solid #9370DB; cursor: pointer; font-size: 14px; color: #8B008B; box-shadow: 0 3px 10px rgba(0,0,0,0.15);">
+        ⏸️ 暂停
+      </button>
+    </div>
+
+    <!-- 关卡显示 -->
+    <div style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); padding: 10px 20px; border-radius: 10px; border: 2px solid #DDA0DD; color: #8B008B; font-weight: bold;">
+      关卡 5
+    </div>
+
+    <!-- 左边键盘提示（WASD按键样式） -->
+    <div style="position: absolute; top: 60px; left: 15px; display: flex; flex-direction: column; gap: 5px;">
+      <!-- W键 -->
+      <div style="width: 40px; height: 40px; background: linear-gradient(145deg, #FFF, #E8E8E8); border-radius: 6px; border: 2px solid #999; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #8B008B; box-shadow: 0 3px 6px rgba(0,0,0,0.2); font-size: 16px;">
+        W
+      </div>
+      <!-- A S D 一行 -->
+      <div style="display: flex; gap: 5px;">
+        <div style="width: 40px; height: 40px; background: linear-gradient(145deg, #FFF, #E8E8E8); border-radius: 6px; border: 2px solid #999; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #8B008B; box-shadow: 0 3px 6px rgba(0,0,0,0.2); font-size: 16px;">
+          A
+        </div>
+        <div style="width: 40px; height: 40px; background: linear-gradient(145deg, #FFF, #E8E8E8); border-radius: 6px; border: 2px solid #999; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #8B008B; box-shadow: 0 3px 6px rgba(0,0,0,0.2); font-size: 16px;">
+          S
+        </div>
+        <div style="width: 40px; height: 40px; background: linear-gradient(145deg, #FFF, #E8E8E8); border-radius: 6px; border: 2px solid #999; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #8B008B; box-shadow: 0 3px 6px rgba(0,0,0,0.2); font-size: 16px;">
+          D
+        </div>
+      </div>
+    </div>
+
+    <!-- 地图区域 -->
+    <div style="position: absolute; top: 60px; left: 80px; right: 20px; bottom: 80px; background: rgba(255,255,255,0.85); border-radius: 15px; border: 3px solid rgba(255,182,193,0.6); overflow: hidden;">
+      <div style="position: absolute; top: 40%; left: 25%; font-size: 28px;">🐱</div>
+      <div style="position: absolute; top: 55%; right: 25%; font-size: 24px;">🐭</div>
+      <div style="position: absolute; top: 30%; left: 45%; width: 18px; height: 16px; background: #DAA520; border-radius: 3px; border: 2px solid #8B4513;"></div>
+      <div style="position: absolute; top: 20%; right: 10%; width: 22px; height: 28px; background: #4CAF50; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 12px;">🚪</div>
+    </div>
+
+    <!-- 底部道具栏 -->
+    <div style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; background: rgba(255,255,255,0.95); padding: 12px 20px; border-radius: 15px; border: 2px solid #FF69B4; box-shadow: 0 4px 15px rgba(255,105,180,0.3);">
+      <div style="text-align: center;">
+        <div style="width: 45px; height: 45px; background: linear-gradient(145deg, #FFE4B5, #FFD700); border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #DAA520; font-size: 20px;">🔑</div>
+        <div style="font-size: 11px; color: #8B008B; margin-top: 2px;">1</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="width: 45px; height: 45px; background: linear-gradient(145deg, #E3F2FD, #64B5F6); border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #1976D2; font-size: 20px;">⏱️</div>
+        <div style="font-size: 11px; color: #8B008B; margin-top: 2px;">2</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="width: 45px; height: 45px; background: linear-gradient(145deg, #E8F5E9, #81C784); border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #388E3C; font-size: 20px;">❄️</div>
+        <div style="font-size: 11px; color: #8B008B; margin-top: 2px;">3</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="width: 45px; height: 45px; background: rgba(200,200,200,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px dashed #999; font-size: 14px; color: #999;">空</div>
+        <div style="font-size: 11px; color: #999; margin-top: 2px;">4</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top: 25px;">
+  <div class="mockup-header">手机/平板版界面（虚拟方向控制器）</div>
+  <div class="mockup-body" style="background: linear-gradient(135deg, #FFB6C1 0%, #E6E6FA 50%, #DDA0DD 100%); padding: 15px; min-height: 320px; position: relative; border-radius: 15px;">
+
+    <!-- 左上角按钮（小屏适配） -->
+    <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 5px;">
+      <button style="background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; border: 2px solid #FF69B4; font-size: 12px; color: #8B008B;">
+        ❌
+      </button>
+      <button style="background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; border: 2px solid #9370DB; font-size: 12px; color: #8B008B;">
+        ⏸️
+      </button>
+    </div>
+
+    <!-- 关卡 -->
+    <div style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 8px 15px; border-radius: 8px; border: 2px solid #DDA0DD; color: #8B008B; font-weight: bold; font-size: 14px;">
+      关卡 5
+    </div>
+
+    <!-- 地图区域 -->
+    <div style="position: absolute; top: 50px; left: 15px; right: 15px; bottom: 100px; background: rgba(255,255,255,0.85); border-radius: 12px; border: 3px solid rgba(255,182,193,0.6);">
+      <div style="position: absolute; top: 35%; left: 30%; font-size: 24px;">🐱</div>
+      <div style="position: absolute; top: 50%; right: 30%; font-size: 20px;">🐭</div>
+    </div>
+
+    <!-- 左下角虚拟方向控制器（类似王者荣耀） -->
+    <div style="position: absolute; bottom: 20px; left: 20px; width: 100px; height: 100px; background: rgba(0,0,0,0.15); border-radius: 50%; border: 3px solid rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center;">
+      <!-- 内圆（可拖动） -->
+      <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.7); border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>
+    </div>
+    <!-- 方向指示 -->
+    <div style="position: absolute; bottom: 45px; left: 55px; font-size: 10px; color: rgba(255,255,255,0.8);">↑</div>
+    <div style="position: absolute; bottom: 70px; left: 30px; font-size: 10px; color: rgba(255,255,255,0.8);">←</div>
+    <div style="position: absolute; bottom: 70px; left: 80px; font-size: 10px; color: rgba(255,255,255,0.8);">→</div>
+    <div style="position: absolute; bottom: 95px; left: 55px; font-size: 10px; color: rgba(255,255,255,0.8);">↓</div>
+
+    <!-- 右下角道具按钮（触摸版） -->
+    <div style="position: absolute; bottom: 25px; right: 15px; display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; gap: 8px;">
+        <div style="width: 50px; height: 50px; background: linear-gradient(145deg, #FFE4B5, #FFD700); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid #DAA520; font-size: 22px; box-shadow: 0 3px 10px rgba(0,0,0,0.2);">🔑</div>
+        <div style="width: 50px; height: 50px; background: linear-gradient(145deg, #E3F2FD, #64B5F6); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid #1976D2; font-size: 22px; box-shadow: 0 3px 10px rgba(0,0,0,0.2);">⏱️</div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <div style="width: 50px; height: 50px; background: linear-gradient(145deg, #E8F5E9, #81C784); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid #388E3C; font-size: 22px; box-shadow: 0 3px 10px rgba(0,0,0,0.2);">❄️</div>
+        <div style="width: 50px; height: 50px; background: rgba(200,200,200,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 2px dashed #999; font-size: 14px; color: #999;">空</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top: 20px; color: #8B008B; text-align: center; font-weight: bold;">这样调整可以吗？</p>
+
+<div class="section" style="margin-top: 15px; padding: 15px; background: #FFF0F5; border-radius: 10px;">
+  <h4 style="color: #8B008B; margin-bottom: 10px;">设计说明：</h4>
+  <ul style="color: #666; margin-left: 20px; line-height: 1.8;">
+    <li><strong>电脑版：</strong>左边显示真实的WASD键盘按键样式，直观易懂</li>
+    <li><strong>手机/平板：</strong>左下角虚拟摇杆控制器（类似王者荣耀），拖动控制方向</li>
+    <li><strong>道具栏：</strong>手机版放在右下角，点击使用（类似游戏技能按钮）</li>
+    <li><strong>自动适配：</strong>检测设备类型，自动切换控制方式</li>
+  </ul>
+</div>

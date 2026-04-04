@@ -1,0 +1,70 @@
+<h2>转场动画与游戏结束画面（完整版）</h2>
+<p class="subtitle">四种结局画面：老鼠赢/输 + 猫赢/输</p>
+
+<div class="mockup">
+  <div class="mockup-header">转场动画：选择角色 → 进入游戏</div>
+  <div class="mockup-body" style="background: linear-gradient(135deg, #FFB6C1, #DDA0DD); padding: 20px; min-height: 180px; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+    <div style="text-align: center;">
+      <div style="font-size: 50px;">🐭 ➡️ 🏃💨 ➡️ 🎮</div>
+      <div style="font-size: 14px; color: #8B008B; margin-top: 15px;">
+        选择角色 → 放大跳出 → 奔跑动画 → 地图淡入 → "关卡 X" 闪烁
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+  <!-- 老鼠获胜 -->
+  <div style="background: linear-gradient(135deg, #FFD700, #FFA500); border-radius: 15px; padding: 15px; text-align: center;">
+    <div style="font-size: 13px; color: #fff; margin-bottom: 8px; font-weight: bold;">🎉 老鼠获胜（逃跑成功）</div>
+    <div style="background: rgba(255,255,255,0.95); border-radius: 12px; padding: 12px;">
+      <div style="font-size: 45px;">🎊 🐭 ✨ 🎊</div>
+      <div style="font-size: 16px; color: #FFD700; font-weight: bold; margin-top: 8px;">恭喜！成功逃脱！</div>
+      <div style="font-size: 13px; color: #888; margin-top: 5px;">🎊 烟花绽放 🎵 欢快音乐</div>
+      <button style="margin-top: 10px; background: #4CAF50; color: white; padding: 8px 20px; border-radius: 18px; border: none; font-size: 13px;">下一关 ▶</button>
+    </div>
+  </div>
+
+  <!-- 老鼠失败 -->
+  <div style="background: linear-gradient(135deg, #87CEEB, #6495ED); border-radius: 15px; padding: 15px; text-align: center;">
+    <div style="font-size: 13px; color: #fff; margin-bottom: 8px; font-weight: bold;">😢 老鼠失败（被抓住）</div>
+    <div style="background: rgba(255,255,255,0.95); border-radius: 12px; padding: 12px;">
+      <div style="font-size: 45px;">😿 🧳 💔</div>
+      <div style="font-size: 16px; color: #6495ED; font-weight: bold; margin-top: 8px;">哎呀！被抓住了！</div>
+      <div style="font-size: 13px; color: #888; margin-top: 5px;">💧 小老鼠哭泣 😿 悲伤音乐</div>
+      <button style="margin-top: 10px; background: #9370DB; color: white; padding: 8px 20px; border-radius: 18px; border: none; font-size: 13px;">再试一次 🔄</button>
+    </div>
+  </div>
+
+  <!-- 猫获胜 -->
+  <div style="background: linear-gradient(135deg, #FFA500, #FF8C00); border-radius: 15px; padding: 15px; text-align: center;">
+    <div style="font-size: 13px; color: #fff; margin-bottom: 8px; font-weight: bold;">😼 猫获胜（抓住老鼠）</div>
+    <div style="background: rgba(255,255,255,0.95); border-radius: 12px; padding: 12px;">
+      <div style="font-size: 45px;">😼 🎉 🐭</div>
+      <div style="font-size: 16px; color: #FF8C00; font-weight: bold; margin-top: 8px;">抓到了！喵喵得意！</div>
+      <div style="font-size: 13px; color: #888; margin-top: 5px;">🎉 猫得意洋洋 😼 欢快音乐</div>
+      <button style="margin-top: 10px; background: #4CAF50; color: white; padding: 8px 20px; border-radius: 18px; border: none; font-size: 13px;">下一关 ▶</button>
+    </div>
+  </div>
+
+  <!-- 猫失败 -->
+  <div style="background: linear-gradient(135deg, #B0BEC5, #78909C); border-radius: 15px; padding: 15px; text-align: center;">
+    <div style="font-size: 13px; color: #fff; margin-bottom: 8px; font-weight: bold;">😿 猫失败（老鼠逃走了）</div>
+    <div style="background: rgba(255,255,255,0.95); border-radius: 12px; padding: 12px;">
+      <div style="font-size: 45px;">😿 🚪 💨 🐭</div>
+      <div style="font-size: 16px; color: #78909C; font-weight: bold; margin-top: 8px;">可惜！老鼠跑了！</div>
+      <div style="font-size: 13px; color: #888; margin-top: 5px;">😿 猫垂头丧气 💔 悲伤音乐</div>
+      <button style="margin-top: 10px; background: #9370DB; color: white; padding: 8px 20px; border-radius: 18px; border: none; font-size: 13px;">再试一次 🔄</button>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 15px; padding: 12px; background: #FFF0F5; border-radius: 10px; border: 2px solid #FFB6C1;">
+  <h4 style="color: #8B008B; margin: 0 0 8px 0;">四种结局对应关系：</h4>
+  <div style="font-size: 13px; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+    <div>• 玩家扮演老鼠 + 逃脱成功 = 🎉 老鼠获胜</div>
+    <div>• 玩家扮演老鼠 + 被抓住 = 😢 老鼠失败</div>
+    <div>• 玩家扮演猫 + 抓住老鼠 = 😼 猫获胜</div>
+    <div>• 玩家扮演猫 + 老鼠逃跑 = 😿 猫失败</div>
+  </div>
+</div>

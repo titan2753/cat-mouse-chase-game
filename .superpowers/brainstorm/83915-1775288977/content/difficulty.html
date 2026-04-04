@@ -1,0 +1,49 @@
+<h2>关卡难度怎么递进？</h2>
+<p class="subtitle">每一关比上一关难一点，怎么实现？</p>
+
+<div class="cards">
+  <div class="card" data-choice="simple" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #E3F2FD; padding: 15px; height: 120px;">
+      <div style="font-size: 14px; color: #333;">
+        <div style="margin-bottom: 8px;"><strong>关卡1：</strong>小地图，3个宝箱</div>
+        <div style="margin-bottom: 8px;"><strong>关卡2：</strong>中等地图，4个宝箱</div>
+        <div style="margin-bottom: 8px;"><strong>关卡3：</strong>大地图，5个宝箱</div>
+        <div><strong>关卡4+：</strong>地图越来越大...</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>简单递进（推荐）</h3>
+      <p>地图从小到大，宝箱越来越多，障碍物逐渐增加。容易理解，女儿能感受到进步。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="ai-speed" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #FFF3E0; padding: 15px; height: 120px;">
+      <div style="font-size: 14px; color: #333;">
+        <div style="margin-bottom: 8px;"><strong>关卡1：</strong>猫慢慢走</div>
+        <div style="margin-bottom: 8px;"><strong>关卡5：</strong>猫正常速度</div>
+        <div style="margin-bottom: 8px;"><strong>关卡10：</strong>猫跑得快</div>
+        <div><strong>关卡15+：</strong>猫超快！</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>AI加速递进</h3>
+      <p>地图变化不大，但AI猫越来越聪明、越来越快。后期猫会追得很快，挑战刺激感强。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="mixed" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #E8F5E9; padding: 15px; height: 120px;">
+      <div style="font-size: 14px; color: #333;">
+        <div style="margin-bottom: 8px;"><strong>关卡1：</strong>小地图 + 慢猫</div>
+        <div style="margin-bottom: 8px;"><strong>关卡5：</strong>中地图 + 快猫</div>
+        <div style="margin-bottom: 8px;"><strong>关卡10：</strong>大地图 + 超快猫</div>
+        <div><strong>关卡15+：</strong>复杂地图 + 智能猫</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>综合递进</h3>
+      <p>地图变大 + AI变快 + 障碍物变多。全方位提升难度，后期很有挑战，但开发复杂度高。</p>
+    </div>
+  </div>
+</div>

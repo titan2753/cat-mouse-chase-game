@@ -1,0 +1,51 @@
+<h2>玩家扮演猫时，怎么获胜？</h2>
+<p class="subtitle">选择猫追老鼠，猫的胜利条件是什么？</p>
+
+<div class="cards">
+  <div class="card" data-choice="catch-time" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #FFE4E1; display: flex; align-items: center; justify-content: center; height: 120px;">
+      <div style="text-align: center;">
+        <div style="font-size: 40px;">🐱✊🐭</div>
+        <div style="font-size: 14px; color: #666; margin-top: 10px;">抓住老鼠 = 获胜</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>抓住老鼠就赢（推荐）</h3>
+      <p>猫碰到老鼠就抓住，游戏结束，猫获胜！简单直观，追逐感强。老鼠需要在被抓前拿到钥匙逃跑。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="time-limit" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #E3F2FD; display: flex; align-items: center; justify-content: center; height: 120px;">
+      <div style="text-align: center;">
+        <div style="font-size: 40px;">⏰</div>
+        <div style="font-size: 14px; color: #666; margin-top: 10px;">时间耗尽老鼠赢</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>时间限制模式</h3>
+      <p>每关有时间限制（如60秒），时间耗尽老鼠还没逃走，猫就获胜。猫要在时间内阻止老鼠逃跑。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="key-guard" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #E8F5E9; display: flex; align-items: center; justify-content: center; height: 120px;">
+      <div style="text-align: center;">
+        <div style="font-size: 40px;">🔐</div>
+        <div style="font-size: 14px; color: #666; margin-top: 10px;">守住钥匙不让老鼠拿到</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>守护钥匙模式</h3>
+      <p>猫可以选择站在钥匙旁边守护，老鼠拿不到钥匙就无法开门。策略性强但可能无聊。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px;">
+  <h3 style="margin-bottom: 10px;">💡 游戏体验对比</h3>
+  <table style="width: 100%; font-size: 14px;">
+    <tr><td><strong>扮演老鼠：</strong></td><td>找钥匙 → 开门逃跑 → 获胜</td></tr>
+    <tr><td><strong>扮演猫：</strong></td><td>抓住老鼠 / 时间耗尽 = 获胜</td></tr>
+  </table>
+</div>

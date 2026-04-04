@@ -1,0 +1,58 @@
+<h2>游戏结束画面（修正版）</h2>
+<p class="subtitle">角色表情与结局匹配正确</p>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+  <!-- 老鼠获胜 -->
+  <div style="background: linear-gradient(135deg, #FFD700, #FFA500); border-radius: 15px; padding: 15px; text-align: center;">
+    <div style="font-size: 13px; color: #fff; margin-bottom: 8px; font-weight: bold;">🎉 老鼠获胜（逃跑成功）</div>
+    <div style="background: rgba(255,255,255,0.95); border-radius: 12px; padding: 12px;">
+      <div style="font-size: 45px;">🎉 🐭 😊 🎉</div>
+      <div style="font-size: 16px; color: #FFD700; font-weight: bold; margin-top: 8px;">恭喜！成功逃脱！</div>
+      <div style="font-size: 13px; color: #888; margin-top: 5px;">🎊 老鼠开心庆祝 🎵 欢快音乐</div>
+      <button style="margin-top: 10px; background: #4CAF50; color: white; padding: 8px 20px; border-radius: 18px; border: none; font-size: 13px;">下一关 ▶</button>
+    </div>
+  </div>
+
+  <!-- 老鼠失败 -->
+  <div style="background: linear-gradient(135deg, #87CEEB, #6495ED); border-radius: 15px; padding: 15px; text-align: center;">
+    <div style="font-size: 13px; color: #fff; margin-bottom: 8px; font-weight: bold;">😢 老鼠失败（被抓住）</div>
+    <div style="background: rgba(255,255,255,0.95); border-radius: 12px; padding: 12px;">
+      <div style="font-size: 45px;">😭 🐭 💔</div>
+      <div style="font-size: 16px; color: #6495ED; font-weight: bold; margin-top: 8px;">哎呀！被抓住了！</div>
+      <div style="font-size: 13px; color: #888; margin-top: 5px;">💧 老鼠哭泣 😢 悲伤音乐</div>
+      <button style="margin-top: 10px; background: #9370DB; color: white; padding: 8px 20px; border-radius: 18px; border: none; font-size: 13px;">再试一次 🔄</button>
+    </div>
+  </div>
+
+  <!-- 猫获胜 -->
+  <div style="background: linear-gradient(135deg, #FFA500, #FF8C00); border-radius: 15px; padding: 15px; text-align: center;">
+    <div style="font-size: 13px; color: #fff; margin-bottom: 8px; font-weight: bold;">😼 猫获胜（抓住老鼠）</div>
+    <div style="background: rgba(255,255,255,0.95); border-radius: 12px; padding: 12px;">
+      <div style="font-size: 45px;">😼 🐱 ✨ 🎉</div>
+      <div style="font-size: 16px; color: #FF8C00; font-weight: bold; margin-top: 8px;">抓到了！喵喵得意！</div>
+      <div style="font-size: 13px; color: #888; margin-top: 5px;">🎉 猫得意洋洋 😼 欢快音乐</div>
+      <button style="margin-top: 10px; background: #4CAF50; color: white; padding: 8px 20px; border-radius: 18px; border: none; font-size: 13px;">下一关 ▶</button>
+    </div>
+  </div>
+
+  <!-- 猫失败 -->
+  <div style="background: linear-gradient(135deg, #B0BEC5, #78909C); border-radius: 15px; padding: 15px; text-align: center;">
+    <div style="font-size: 13px; color: #fff; margin-bottom: 8px; font-weight: bold;">😿 猫失败（老鼠逃走了）</div>
+    <div style="background: rgba(255,255,255,0.95); border-radius: 12px; padding: 12px;">
+      <div style="font-size: 45px;">😿 🐱 💔</div>
+      <div style="font-size: 16px; color: #78909C; font-weight: bold; margin-top: 8px;">可惜！老鼠跑了！</div>
+      <div style="font-size: 13px; color: #888; margin-top: 5px;">😿 猫垂头丧气 😢 悲伤音乐</div>
+      <button style="margin-top: 10px; background: #9370DB; color: white; padding: 8px 20px; border-radius: 18px; border: none; font-size: 13px;">再试一次 🔄</button>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 15px; padding: 12px; background: #FFF0F5; border-radius: 10px; border: 2px solid #FFB6C1;">
+  <h4 style="color: #8B008B; margin: 0 0 8px 0;">✅ 修正后的逻辑：</h4>
+  <div style="font-size: 13px; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+    <div>• 老鼠获胜 → 🐭😊 老鼠开心庆祝</div>
+    <div>• 老鼠失败 → 🐭😭 老鼠哭泣</div>
+    <div>• 猫获胜 → 🐱😼 猫得意洋洋</div>
+    <div>• 猫失败 → 🐱😿 猫垂头丧气</div>
+  </div>
+</div>

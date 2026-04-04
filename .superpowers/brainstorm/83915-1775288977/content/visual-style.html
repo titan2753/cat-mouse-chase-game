@@ -1,0 +1,58 @@
+<h2>你喜欢哪种卡通视觉风格？</h2>
+<p class="subtitle">这将决定游戏的整体美术方向</p>
+
+<div class="cards">
+  <div class="card" data-choice="cute" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(135deg, #FFB6C1, #87CEEB); display: flex; align-items: center; justify-content: center; height: 120px;">
+      <div style="text-align: center;">
+        <div style="font-size: 40px;">😊</div>
+        <div style="font-size: 30px;">🏃💨</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>圆润可爱风格</h3>
+      <p>圆润的角色造型，柔和的颜色，类似《动物森友会》的感觉。适合轻松愉快的家庭游戏氛围。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="pixel" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #2d2d2d; display: flex; align-items: center; justify-content: center; height: 120px;">
+      <div style="font-family: monospace; color: #00ff00; font-size: 14px; line-height: 1.2;">
+        ▓▓▓▓▓▓<br>
+        ▓█▓█▓▓<br>
+        ▓▓▓▓▓▓<br>
+        ▓█▓█▓█<br>
+        ▓▓▓▓▓▓
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>像素复古风格</h3>
+      <p>经典的像素艺术风格，类似《泰拉瑞亚》《星露谷物语》。复古有趣，女儿可能觉得很酷。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="flat" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(45deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; height: 120px;">
+      <div style="display: flex; gap: 10px;">
+        <div style="width: 30px; height: 50px; background: #fff; border-radius: 15px;"></div>
+        <div style="width: 30px; height: 50px; background: #ff6b6b; border-radius: 15px;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>扁平现代风格</h3>
+      <p>简洁的几何形状，鲜明的色彩对比，类似现代手机游戏。清晰易懂，适合快速识别游戏元素。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="hand-drawn" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #f5f5dc; display: flex; align-items: center; justify-content: center; height: 120px; border: 2px dashed #8b4513;">
+      <div style="font-family: cursive; color: #8b4513; font-size: 24px;">
+        ✏️ 亲子手绘风
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>手绘涂鸦风格</h3>
+      <p>像小朋友画画的感觉，线条不规则，颜色鲜艳。你和女儿一起编码，这种感觉更有亲子互动的温馨感。</p>
+    </div>
+  </div>
+</div>
