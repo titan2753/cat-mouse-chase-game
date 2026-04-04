@@ -721,9 +721,17 @@ body {
         border: 3px solid rgba(139, 0, 139, 0.3);
         transition: transform 0.15s, background 0.15s;
         touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+        pointer-events: auto;
     }
 
     .item-btn:active {
+        transform: scale(0.9);
+        background: rgba(255, 182, 193, 0.9);
+    }
+
+    .item-btn.touched {
         transform: scale(0.9);
         background: rgba(255, 182, 193, 0.9);
     }

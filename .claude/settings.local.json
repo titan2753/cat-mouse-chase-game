@@ -14,7 +14,10 @@
       "Bash(git push:*)",
       "Bash(gh auth:*)",
       "Bash(GIT_SSL_NO_VERIFY=true git push -u origin main)",
-      "Bash(GIT_SSL_NO_VERIFY=true git push:*)"
+      "Bash(GIT_SSL_NO_VERIFY=true git push:*)",
+      "Bash(curl -I https://github.com)",
+      "Bash(brew install:*)",
+      "Bash(git config:*)"
     ]
   }
 }

@@ -1580,24 +1580,51 @@ function showWarningEffect() {
     // 保留函数以防其他引用
 }
 
+// ===== 道具触摸处理（移动端） =====
+function handleItemTouch(event, index) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // 添加视觉反馈
+    const btn = event.currentTarget;
+    btn.classList.add('touched');
+    setTimeout(() => {
+        btn.classList.remove('touched');
+    }, 150);
+
+    // 调用道具使用
+    useItem(index);
+}
+
 // ===== 道具使用 =====
 function useItem(index) {
-    if (GameState.isPaused) return;
-    if (!GameState.player) return;
+    console.log('useItem called:', index);
+
+    if (GameState.isPaused) {
+        console.log('Game is paused');
+        return;
+    }
+    if (!GameState.player) {
+        console.log('No player');
+        return;
+    }
 
     // 槽位0（按键1）是钥匙位，不作为道具使用
     if (index === 0) {
-        // 钥匙自动在靠近门时使用，不需要手动触发
+        console.log('Key slot, auto-use only');
         return;
     }
 
     const item = GameState.items[index];
+    console.log('Item at slot', index, ':', item);
+
     if (!item) {
         // 没有道具，显示提示
         showItemHint(index, '空');
         return;
     }
 
+    soundManager.init();
     soundManager.playItemUse();
 
     // 道具对所有AI实体生效
