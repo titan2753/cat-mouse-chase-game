@@ -17,10 +17,15 @@ const GameState = {
     obstacles: [],
     chests: [],
     traps: [],  // 持久陷阱列表
+    catItems: [null, null, null, null],  // 猫专属道具栏
+    fakeChests: [],  // 假宝箱列表
+    kittens: [],     // 小猫列表
     door: null,
     items: [null, null, null, null],
     hasKey: false,
     escapedCount: 0,  // 已逃脱的老鼠数量
+    caughtCount: 0,   // 抓获的老鼠数量
+    totalMice: 0,     // 总老鼠数量
 
     // 地图和摄像机
     mapWidth: 0,
@@ -74,7 +79,17 @@ const GameConfig = {
     itemDuration: {
         slow: 5000,
         freeze: 3000,
-        trap: 4000
+        trap: 4000,
+        invincible: 3000,   // 开局无敌时间
+        invincibleFlash: 1000  // 无敌结束前闪烁时间
+    },
+
+    // 猫专属道具配置
+    catItems: {
+        speedBoost: { name: '加速', icon: '⚡', duration: 5000 },
+        xrayVision: { name: '透视', icon: '👁️', duration: 3000 },
+        fakeChest: { name: '假宝箱', icon: '📦' },
+        summonKitten: { name: '小猫', icon: '🐱', duration: 8000 }
     },
 
     // 警告距离
@@ -220,7 +235,11 @@ class Character {
             slowed: false,
             frozen: false,
             trapped: false,
-            warning: false  // 危险警告状态
+            warning: false,  // 危险警告状态
+            invincible: false,   // 无敌状态
+            invincibleFlash: false,  // 无敌闪烁提示
+            speedBoost: false,   // 加速效果
+            xrayVision: false    // 透视效果
         };
         this.effectTimers = {};
         this.animFrame = 0;
@@ -231,9 +250,13 @@ class Character {
 
         this.direction = dir;
 
+        // 计算移动速度
         let actualSpeed = this.speed;
         if (this.effects.slowed) {
             actualSpeed *= 0.5;
+        }
+        if (this.effects.speedBoost) {
+            actualSpeed *= 1.5;  // 加速效果：速度提升50%
         }
 
         // 计算新位置
@@ -310,12 +333,24 @@ class Character {
     applyEffect(effect, duration) {
         this.effects[effect] = true;
 
+        // 无敌效果：最后1秒开始闪烁
+        if (effect === 'invincible') {
+            setTimeout(() => {
+                if (this.effects.invincible) {
+                    this.effects.invincibleFlash = true;
+                }
+            }, duration - GameConfig.itemDuration.invincibleFlash);
+        }
+
         if (this.effectTimers[effect]) {
             clearTimeout(this.effectTimers[effect]);
         }
 
         this.effectTimers[effect] = setTimeout(() => {
             this.effects[effect] = false;
+            if (effect === 'invincible') {
+                this.effects.invincibleFlash = false;
+            }
             delete this.effectTimers[effect];
         }, duration);
     }
@@ -350,6 +385,24 @@ class Character {
             ctx.stroke();
         }
 
+        // 无敌盾牌效果
+        if (this.effects.invincible) {
+            const flashPhase = this.effects.invincibleFlash;
+            const alpha = flashPhase ? (Math.sin(Date.now() / 100) * 0.3 + 0.5) : 0.4;
+            ctx.strokeStyle = `rgba(255, 215, 0, ${alpha})`;
+            ctx.lineWidth = flashPhase ? 4 : 3;
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, this.size + 15, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // 盾牌图标
+            if (!flashPhase || Math.sin(Date.now() / 100) > 0) {
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('🛡️', screenX, screenY - this.size - 25);
+            }
+        }
+
         // 冰冻效果显示
         if (this.effects.frozen) {
             ctx.globalAlpha = 0.7;
@@ -380,6 +433,22 @@ class Character {
             this.drawMouse();
         } else {
             this.drawCat();
+        }
+
+        // 加速效果：速度线
+        if (this.effects.speedBoost) {
+            ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(screenX - this.size - 5 - i * 8, screenY - 10 + i * 10);
+                ctx.lineTo(screenX - this.size - 15 - i * 8, screenY - 10 + i * 10);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(screenX - this.size - 5 - i * 8, screenY + 10 - i * 10);
+                ctx.lineTo(screenX - this.size - 15 - i * 8, screenY + 10 - i * 10);
+                ctx.stroke();
+            }
         }
 
         ctx.restore();
@@ -599,17 +668,27 @@ function generateLevel(level) {
     // ===== 计算AI数量 =====
     let numAI = 1;
     if (GameState.selectedRole === 'mouse') {
-        // 玩家是老鼠：关卡5以后，每9关增加一只猫
-        if (level > GameConfig.difficultyThreshold) {
+        // 玩家是老鼠：猫的数量
+        if (level < GameConfig.difficultyThreshold) {
+            numAI = 1;  // 前5关：1只猫
+        } else if (level < GameConfig.mapGrowthStartLevel) {
+            // 关卡5-19：最多4只猫
             numAI = 1 + Math.floor((level - GameConfig.difficultyThreshold) / 9);
+            numAI = Math.min(numAI, 4);
+        } else {
+            // 第20关后：从4只开始，地图每变大2档+1只
+            const stages = Math.floor((level - GameConfig.mapGrowthStartLevel) / GameConfig.mapGrowthInterval);
+            // 每2档增加1只猫（档位0→4只，档位2→5只，档位4→6只...）
+            numAI = 4 + Math.floor(stages / 2);
+            numAI = Math.min(numAI, 8);  // 上限8只猫
         }
     } else {
-        // 玩家是猫：关卡5以后，每6关增加一只老鼠
+        // 玩家是猫：老鼠数量（保持原逻辑）
         if (level > GameConfig.difficultyThreshold) {
             numAI = 1 + Math.floor((level - GameConfig.difficultyThreshold) / 6);
         }
+        numAI = Math.min(numAI, 4);
     }
-    numAI = Math.min(numAI, 4); // 最多4个AI
 
     // ===== 障碍物数量（有上限）=====
     let numObstacles = 3 + level;
@@ -681,13 +760,26 @@ function generateLevel(level) {
         } while (checkChestOverlap(chest) && attempts < 30);
 
         if (attempts < 30) {
-            // 前numAI个宝箱必定有钥匙（确保每个老鼠都有机会拿到钥匙）
-            if (i < numAI) {
-                chest.item = 'key';
+            if (GameState.selectedRole === 'mouse') {
+                // 玩家是老鼠：原有逻辑
+                // 前numAI个宝箱必定有钥匙（确保每个老鼠都有机会拿到钥匙）
+                if (i < numAI) {
+                    chest.item = 'key';
+                } else {
+                    // 其他宝箱随机分配道具
+                    const items = ['key', 'slow', 'freeze', 'trap'];
+                    chest.item = items[Math.floor(Math.random() * items.length)];
+                }
             } else {
-                // 其他宝箱随机分配道具
-                const items = ['key', 'slow', 'freeze', 'trap'];
-                chest.item = items[Math.floor(Math.random() * items.length)];
+                // 玩家是猫：分配猫道具或钥匙（老鼠AI也需要钥匙）
+                if (i < numAI) {
+                    // 确保有足够的钥匙让AI老鼠能开门
+                    chest.item = 'key';
+                } else {
+                    // 其他宝箱随机分配猫专属道具
+                    const catItems = ['speedBoost', 'xrayVision', 'fakeChest', 'summonKitten'];
+                    chest.item = catItems[Math.floor(Math.random() * catItems.length)];
+                }
             }
             GameState.chests.push(chest);
         }
@@ -729,6 +821,8 @@ function generateLevel(level) {
     } else {
         // 玩家是猫，创建多个AI老鼠
         GameState.player = new Character(playerStart.x, playerStart.y, 'cat', true);
+        // 开局3秒无敌
+        GameState.player.applyEffect('invincible', GameConfig.itemDuration.invincible);
 
         for (let i = 0; i < numAI; i++) {
             const aiStart = findValidAIPosition(width, height, 'mouse', i, numAI);
@@ -1220,6 +1314,62 @@ function updateMovingObstacles() {
     }
 }
 
+// 更新小猫
+function updateKittens() {
+    const now = Date.now();
+
+    for (let i = GameState.kittens.length - 1; i >= 0; i--) {
+        const kitten = GameState.kittens[i];
+
+        // 检查是否过期
+        if (now - kitten.createdAt > kitten.duration) {
+            GameState.kittens.splice(i, 1);
+            continue;
+        }
+
+        // 寻找最近的老鼠
+        let nearestMouse = null;
+        let minDist = Infinity;
+
+        for (const ai of GameState.aiEntities) {
+            if (ai.caught || ai.escaped) continue;
+            const dist = Math.sqrt(
+                Math.pow(kitten.x - ai.x, 2) +
+                Math.pow(kitten.y - ai.y, 2)
+            );
+            if (dist < minDist) {
+                minDist = dist;
+                nearestMouse = ai;
+            }
+        }
+
+        // 追踪最近的老鼠
+        if (nearestMouse && minDist > 25) {
+            const dx = nearestMouse.x - kitten.x;
+            const dy = nearestMouse.y - kitten.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            kitten.x += (dx / dist) * kitten.speed;
+            kitten.y += (dy / dist) * kitten.speed;
+        }
+
+        // 小猫抓老鼠检测
+        for (const ai of GameState.aiEntities) {
+            if (ai.caught || ai.escaped) continue;
+            const dist = Math.sqrt(
+                Math.pow(kitten.x - ai.x, 2) +
+                Math.pow(kitten.y - ai.y, 2)
+            );
+            if (dist < 25) {
+                ai.caught = true;
+                ai.visible = false;
+                soundManager.playCaught();
+                showCatchNotification();
+                updateAICountDisplay(GameState.aiEntities.length);
+            }
+        }
+    }
+}
+
 function updateAI() {
     if (!GameState.aiEntities || GameState.aiEntities.length === 0 || !GameState.player) return;
 
@@ -1488,6 +1638,10 @@ function checkCollisions() {
                 return;
             } else {
                 // 玩家猫抓住一只老鼠，标记这只老鼠被抓
+                // 检查无敌状态（无敌期间不能抓老鼠）
+                if (GameState.player.effects.invincible) {
+                    continue;  // 无敌期间跳过抓捕
+                }
                 ai.caught = true;
                 ai.visible = false;
                 // 播放抓捕音效
@@ -1509,33 +1663,45 @@ function checkCollisions() {
             return;
         }
 
-        // 检查是否所有老鼠都被抓（猫赢）
-        // 排除已逃脱的老鼠，只检查未被抓住的老鼠是否全部被抓
-        const activeMice = GameState.aiEntities.filter(ai => !ai.escaped);
-        const allActiveCaught = activeMice.every(ai => ai.caught);
+        // 计算抓获比例
+        const totalMice = GameState.aiEntities.length;
+        const caughtMice = GameState.aiEntities.filter(ai => ai.caught).length;
+        const catchRatio = caughtMice / totalMice;
 
-        if (allActiveCaught && activeMice.length > 0) {
+        // 抓到超过50%老鼠即获胜
+        if (catchRatio > 0.5) {
+            GameState.caughtCount = caughtMice;
+            GameState.totalMice = totalMice;
+            endGame(true, 'cat_wins');
+            return;
+        }
+
+        // 所有老鼠被抓也是获胜
+        if (caughtMice === totalMice) {
+            GameState.caughtCount = caughtMice;
+            GameState.totalMice = totalMice;
             endGame(true, 'cat_wins');
             return;
         }
     }
 
-    // 检查宝箱碰撞 - 只有老鼠（逃生者）能开箱子，猫不能破坏财物
+    // 检查宝箱碰撞 - 玩家（老鼠或猫）都能开箱子
     for (const chest of GameState.chests) {
         if (chest.isOpen) continue;
 
-        // 玩家是老鼠：检测玩家开箱子
-        if (GameState.selectedRole === 'mouse') {
-            const chestDist = Math.sqrt(
-                Math.pow(GameState.player.x - chest.x, 2) +
-                Math.pow(GameState.player.y - chest.y, 2)
-            );
+        // 玩家开箱子检测
+        const playerChestDist = Math.sqrt(
+            Math.pow(GameState.player.x - chest.x, 2) +
+            Math.pow(GameState.player.y - chest.y, 2)
+        );
 
-            if (chestDist < chest.size + GameState.player.size/2) {
-                openChest(chest, GameState.player);
-            }
-        } else {
-            // 玩家是猫：检测所有AI老鼠开箱子
+        if (playerChestDist < chest.size + GameState.player.size/2) {
+            openChest(chest, GameState.player);
+            continue;
+        }
+
+        // AI老鼠开箱子检测（仅当玩家是猫时）
+        if (GameState.selectedRole === 'cat') {
             for (const ai of GameState.aiEntities) {
                 if (ai.caught || ai.escaped) continue;
 
@@ -1624,32 +1790,66 @@ function openChest(chest, entity) {
 
     const item = chest.item;
     const isPlayer = (entity === GameState.player);
+    const isCatPlayer = (GameState.selectedRole === 'cat' && isPlayer);
 
     if (item === 'key') {
-        // 钥匙：区分玩家和AI
-        if (isPlayer) {
-            GameState.hasKey = true;
+        if (GameState.selectedRole === 'mouse') {
+            // 老鼠玩家获得钥匙
+            if (isPlayer) {
+                GameState.hasKey = true;
+            } else {
+                entity.hasKey = true;
+            }
+            GameState.door.isLocked = false;
         } else {
-            entity.hasKey = true;
+            // 猫玩家开到钥匙转为随机猫道具
+            if (isPlayer) {
+                const catItemTypes = ['speedBoost', 'xrayVision', 'fakeChest', 'summonKitten'];
+                const randomCatItem = catItemTypes[Math.floor(Math.random() * catItemTypes.length)];
+                const slotIndex = findEmptyCatSlot();
+                if (slotIndex !== -1) {
+                    GameState.catItems[slotIndex] = randomCatItem;
+                }
+            }
         }
-        GameState.door.isLocked = false;
         updateItemBar();
     } else if (item === 'slow' || item === 'freeze' || item === 'trap') {
-        if (isPlayer) {
-            // 玩家老鼠获得道具放入道具栏
-            const slotIndex = findEmptySlot();
-            if (slotIndex !== -1) {
-                GameState.items[slotIndex] = item;
-                updateItemBar();
+        if (GameState.selectedRole === 'mouse') {
+            if (isPlayer) {
+                const slotIndex = findEmptySlot();
+                if (slotIndex !== -1) {
+                    GameState.items[slotIndex] = item;
+                    updateItemBar();
+                }
+            } else {
+                // AI老鼠对玩家猫使用道具
+                if (item === 'slow') {
+                    GameState.player.applyEffect('slowed', GameConfig.itemDuration.slow);
+                } else if (item === 'freeze') {
+                    GameState.player.applyEffect('frozen', GameConfig.itemDuration.freeze);
+                } else if (item === 'trap') {
+                    GameState.player.applyEffect('trapped', GameConfig.itemDuration.trap);
+                }
             }
         } else {
-            // AI老鼠获得道具，自动对猫使用
-            if (item === 'slow') {
-                GameState.player.applyEffect('slowed', GameConfig.itemDuration.slow);
-            } else if (item === 'freeze') {
-                GameState.player.applyEffect('frozen', GameConfig.itemDuration.freeze);
-            } else if (item === 'trap') {
-                GameState.player.applyEffect('trapped', GameConfig.itemDuration.trap);
+            // 猫玩家开到老鼠道具转为猫道具
+            if (isPlayer) {
+                const catItemTypes = ['speedBoost', 'xrayVision', 'fakeChest', 'summonKitten'];
+                const randomCatItem = catItemTypes[Math.floor(Math.random() * catItemTypes.length)];
+                const slotIndex = findEmptyCatSlot();
+                if (slotIndex !== -1) {
+                    GameState.catItems[slotIndex] = randomCatItem;
+                    updateItemBar();
+                }
+            }
+        }
+    } else if (['speedBoost', 'xrayVision', 'fakeChest', 'summonKitten'].includes(item)) {
+        // 猫专属道具
+        if (isCatPlayer) {
+            const slotIndex = findEmptyCatSlot();
+            if (slotIndex !== -1) {
+                GameState.catItems[slotIndex] = item;
+                updateItemBar();
             }
         }
     }
@@ -1666,15 +1866,30 @@ function findEmptySlot() {
     return -1; // 没有空槽位
 }
 
+function findEmptyCatSlot() {
+    for (let i = 1; i < 4; i++) {
+        if (GameState.catItems[i] === null) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 
 function updateItemBar() {
-    const icons = { slow: '⏱️', freeze: '❄️', trap: '🪤', key: '🔑' };
+    const icons = {
+        slow: '⏱️', freeze: '❄️', trap: '🪤', key: '🔑',
+        speedBoost: '⚡', xrayVision: '👁️', fakeChest: '📦', summonKitten: '🐱'
+    };
 
     // 检查是否有人持有钥匙
     let anyoneHasKey = GameState.hasKey;
     if (!anyoneHasKey && GameState.aiEntities) {
         anyoneHasKey = GameState.aiEntities.some(ai => ai.hasKey);
     }
+
+    // 根据角色选择道具数组
+    const items = GameState.selectedRole === 'mouse' ? GameState.items : GameState.catItems;
 
     // 更新PC端道具栏
     const pcSlots = document.querySelectorAll('.item-bar .slot-icon');
@@ -1683,8 +1898,8 @@ function updateItemBar() {
         parent.classList.remove('has-item');
 
         if (i === 0) {
-            // 槽位0是钥匙
-            if (anyoneHasKey) {
+            // 槽位0是钥匙（仅老鼠显示）
+            if (GameState.selectedRole === 'mouse' && anyoneHasKey) {
                 slot.textContent = icons.key;
                 parent.classList.add('has-item');
             } else {
@@ -1692,8 +1907,8 @@ function updateItemBar() {
             }
         } else {
             // 槽位1-3是道具
-            if (GameState.selectedRole === 'mouse' && GameState.items[i]) {
-                slot.textContent = icons[GameState.items[i]] || '';
+            if (items[i]) {
+                slot.textContent = icons[items[i]] || '';
                 parent.classList.add('has-item');
             } else {
                 slot.textContent = '';
@@ -1708,17 +1923,15 @@ function updateItemBar() {
         btn.classList.remove('has-item');
 
         if (i === 0) {
-            // 按钮是钥匙
-            if (anyoneHasKey) {
+            if (GameState.selectedRole === 'mouse' && anyoneHasKey) {
                 iconEl.textContent = icons.key;
                 btn.classList.add('has-item');
             } else {
                 iconEl.textContent = '';
             }
         } else {
-            // 按钮1-3是道具
-            if (GameState.selectedRole === 'mouse' && GameState.items[i]) {
-                iconEl.textContent = icons[GameState.items[i]] || '';
+            if (items[i]) {
+                iconEl.textContent = icons[items[i]] || '';
                 btn.classList.add('has-item');
             } else {
                 iconEl.textContent = '';
@@ -1767,7 +1980,8 @@ function useItem(index) {
         return;
     }
 
-    const item = GameState.items[index];
+    const items = GameState.selectedRole === 'mouse' ? GameState.items : GameState.catItems;
+    const item = items[index];
     console.log('Item at slot', index, ':', item);
 
     if (!item) {
@@ -1779,23 +1993,44 @@ function useItem(index) {
     soundManager.init();
     soundManager.playItemUse();
 
-    // 道具对所有AI实体生效
-    if (item === 'slow') {
-        for (const ai of GameState.aiEntities) {
-            ai.applyEffect('slowed', GameConfig.itemDuration.slow);
+    if (GameState.selectedRole === 'mouse') {
+        // 老鼠道具逻辑
+        if (item === 'slow') {
+            for (const ai of GameState.aiEntities) {
+                ai.applyEffect('slowed', GameConfig.itemDuration.slow);
+            }
+            GameState.items[index] = null;
+            showItemHint(index, '⏱️ 减速！');
+        } else if (item === 'freeze') {
+            for (const ai of GameState.aiEntities) {
+                ai.applyEffect('frozen', GameConfig.itemDuration.freeze);
+            }
+            GameState.items[index] = null;
+            showItemHint(index, '❄️ 冰冻！');
+        } else if (item === 'trap') {
+            placeTrap();
+            GameState.items[index] = null;
+            showItemHint(index, '🪤 陷阱！');
         }
-        GameState.items[index] = null;
-        showItemHint(index, '⏱️ 减速！');
-    } else if (item === 'freeze') {
-        for (const ai of GameState.aiEntities) {
-            ai.applyEffect('frozen', GameConfig.itemDuration.freeze);
+    } else {
+        // 猫道具逻辑
+        if (item === 'speedBoost') {
+            GameState.player.applyEffect('speedBoost', GameConfig.catItems.speedBoost.duration);
+            GameState.catItems[index] = null;
+            showItemHint(index, '⚡ 加速！');
+        } else if (item === 'xrayVision') {
+            GameState.player.applyEffect('xrayVision', GameConfig.catItems.xrayVision.duration);
+            GameState.catItems[index] = null;
+            showItemHint(index, '👁️ 透视！');
+        } else if (item === 'fakeChest') {
+            placeFakeChest();
+            GameState.catItems[index] = null;
+            showItemHint(index, '📦 陷阱！');
+        } else if (item === 'summonKitten') {
+            summonKitten();
+            GameState.catItems[index] = null;
+            showItemHint(index, '🐱 小猫！');
         }
-        GameState.items[index] = null;
-        showItemHint(index, '❄️ 冰冻！');
-    } else if (item === 'trap') {
-        placeTrap();
-        GameState.items[index] = null;
-        showItemHint(index, '🪤 陷阱！');
     }
 
     updateItemBar();
@@ -1829,6 +2064,32 @@ function placeTrap() {
     };
 
     GameState.traps.push(trap);
+}
+
+// 放置假宝箱陷阱
+function placeFakeChest() {
+    const fakeChest = {
+        x: GameState.player.x,
+        y: GameState.player.y,
+        size: 35,
+        active: true,
+        createdAt: Date.now()
+    };
+    GameState.fakeChests.push(fakeChest);
+}
+
+// 召唤小猫
+function summonKitten() {
+    const angle = Math.random() * Math.PI * 2;
+    const kitten = {
+        x: GameState.player.x + Math.cos(angle) * 60,
+        y: GameState.player.y + Math.sin(angle) * 60,
+        speed: GameConfig.playerSpeed * 0.8,
+        active: true,
+        createdAt: Date.now(),
+        duration: GameConfig.catItems.summonKitten.duration
+    };
+    GameState.kittens.push(kitten);
 }
 
 // 检查陷阱碰撞
@@ -1907,6 +2168,106 @@ function drawTraps() {
     }
 }
 
+// 绘制假宝箱
+function drawFakeChests() {
+    for (const fakeChest of GameState.fakeChests) {
+        if (!fakeChest.active) continue;
+
+        const screenX = fakeChest.x - GameState.cameraX;
+        const screenY = fakeChest.y - GameState.cameraY;
+
+        // 检查是否在屏幕范围内
+        if (screenX < -50 || screenX > canvas.width + 50 ||
+            screenY < -50 || screenY > canvas.height + 50) {
+            continue;
+        }
+
+        ctx.save();
+
+        // 绘制假宝箱（外观与真宝箱相似）
+        ctx.fillStyle = '#DAA520';
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 2;
+
+        // 箱体
+        ctx.fillRect(screenX - fakeChest.size/2, screenY - fakeChest.size/2,
+                     fakeChest.size, fakeChest.size);
+        ctx.strokeRect(screenX - fakeChest.size/2, screenY - fakeChest.size/2,
+                       fakeChest.size, fakeChest.size);
+
+        // 锁孔
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+}
+
+// 绘制小猫
+function drawKittens() {
+    for (const kitten of GameState.kittens) {
+        if (!kitten.active) continue;
+
+        const screenX = kitten.x - GameState.cameraX;
+        const screenY = kitten.y - GameState.cameraY;
+
+        // 检查是否在屏幕范围内
+        if (screenX < -50 || screenX > canvas.width + 50 ||
+            screenY < -50 || screenY > canvas.height + 50) {
+            continue;
+        }
+
+        ctx.save();
+
+        // 绘制小猫（比普通猫小）
+        const bounce = Math.sin(Date.now() / 150) * 2;
+
+        // 身体
+        ctx.fillStyle = '#FFA500';
+        ctx.beginPath();
+        ctx.ellipse(screenX, screenY + 8 + bounce, 12, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 头部
+        ctx.beginPath();
+        ctx.arc(screenX, screenY - 5 + bounce, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 耳朵
+        ctx.beginPath();
+        ctx.moveTo(screenX - 8, screenY - 12 + bounce);
+        ctx.lineTo(screenX - 5, screenY - 22 + bounce);
+        ctx.lineTo(screenX - 2, screenY - 12 + bounce);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(screenX + 8, screenY - 12 + bounce);
+        ctx.lineTo(screenX + 5, screenY - 22 + bounce);
+        ctx.lineTo(screenX + 2, screenY - 12 + bounce);
+        ctx.fill();
+
+        // 眼睛
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(screenX - 4, screenY - 6 + bounce, 2, 0, Math.PI * 2);
+        ctx.arc(screenX + 4, screenY - 6 + bounce, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 尾巴
+        ctx.strokeStyle = '#FFA500';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(screenX + 12, screenY + 10 + bounce);
+        ctx.quadraticCurveTo(screenX + 20, screenY + bounce, screenX + 18, screenY + 15 + bounce);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+}
+
 // ===== 摄像机系统 =====
 function updateCamera() {
     if (!GameState.player) return;
@@ -1965,6 +2326,9 @@ function gameLoop(timestamp) {
     // 绘制陷阱
     drawTraps();
 
+    // 绘制假宝箱
+    drawFakeChests();
+
     // 绘制门
     drawDoor();
 
@@ -1977,11 +2341,17 @@ function gameLoop(timestamp) {
     // 更新AI
     updateAI();
 
+    // 更新小猫
+    updateKittens();
+
     // 检查陷阱碰撞
     checkTraps();
 
     // 绘制角色
     drawCharacters();
+
+    // 绘制小猫
+    drawKittens();
 
     // 检查碰撞
     checkCollisions();
@@ -2061,7 +2431,7 @@ function showEndScreen(playerWins, result) {
         cat_wins: {
             emoji: '😼 🐱 ✨ 🎉',
             title: '抓到了！喵喵得意！',
-            message: '猫得意洋洋，成功抓住老鼠！'
+            message: `抓获 ${GameState.caughtCount}/${GameState.totalMice} 只老鼠！`
         },
         mouse_escapes_as_cat: {
             emoji: '😿 🐱 💔',
