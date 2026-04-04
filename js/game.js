@@ -551,14 +551,14 @@ function generateLevel(level) {
     // ===== 计算AI数量 =====
     let numAI = 1;
     if (GameState.selectedRole === 'mouse') {
-        // 玩家是老鼠：关卡5以后，每3关增加一只猫
+        // 玩家是老鼠：关卡5以后，每9关增加一只猫
         if (level > GameConfig.difficultyThreshold) {
-            numAI = 1 + Math.floor((level - GameConfig.difficultyThreshold) / 3);
+            numAI = 1 + Math.floor((level - GameConfig.difficultyThreshold) / 9);
         }
     } else {
-        // 玩家是猫：关卡5以后，每2关增加一只老鼠
+        // 玩家是猫：关卡5以后，每6关增加一只老鼠
         if (level > GameConfig.difficultyThreshold) {
-            numAI = 1 + Math.floor((level - GameConfig.difficultyThreshold) / 2);
+            numAI = 1 + Math.floor((level - GameConfig.difficultyThreshold) / 6);
         }
     }
     numAI = Math.min(numAI, 4); // 最多4个AI
