@@ -4,26 +4,213 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>你追我赶 - 猫和老鼠</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="game-container"></div>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-    <script src="js/utils/constants.js"></script>
-    <script src="js/utils/svgAssets.js"></script>
-    <script src="js/entities/Cat.js"></script>
-    <script src="js/entities/Mouse.js"></script>
-    <script src="js/entities/Obstacle.js"></script>
-    <script src="js/entities/Chest.js"></script>
-    <script src="js/entities/Door.js"></script>
-    <script src="js/systems/AIController.js"></script>
-    <script src="js/systems/ItemSystem.js"></script>
-    <script src="js/systems/LevelSystem.js"></script>
-    <script src="js/systems/InputManager.js"></script>
-    <script src="js/systems/SoundManager.js"></script>
-    <script src="js/scenes/HomeScene.js"></script>
-    <script src="js/scenes/GameScene.js"></script>
-    <script src="js/scenes/EndScene.js"></script>
-    <script src="js/main.js"></script>
+    <!-- 首页 -->
+    <div id="home-screen" class="screen active">
+        <div class="background-effects">
+            <div class="floating-star" style="--delay: 0s; --x: 10%; --y: 20%;">✨</div>
+            <div class="floating-star" style="--delay: 1s; --x: 80%; --y: 15%;">⭐</div>
+            <div class="floating-star" style="--delay: 2s; --x: 15%; --y: 70%;">🌸</div>
+            <div class="floating-star" style="--delay: 0.5s; --x: 85%; --y: 60%;">💜</div>
+            <div class="floating-star" style="--delay: 1.5s; --x: 50%; --y: 85%;">🎀</div>
+            <div class="floating-star" style="--delay: 2.5s; --x: 30%; --y: 40%;">💫</div>
+        </div>
+
+        <div class="content-wrapper">
+            <header class="game-header">
+                <h1 class="game-title">
+                    <span class="title-emoji">🐱</span>
+                    <span class="title-text">你追我赶</span>
+                    <span class="title-emoji">🐭</span>
+                </h1>
+                <p class="game-subtitle">猫和老鼠的追逐大战！</p>
+            </header>
+
+            <div class="records-container">
+                <div class="record-card record-best">
+                    <div class="record-icon">🏆</div>
+                    <div class="record-info">
+                        <span class="record-label">最高记录</span>
+                        <span class="record-value" id="best-record">15关</span>
+                    </div>
+                </div>
+                <div class="record-card record-last">
+                    <div class="record-icon">📊</div>
+                    <div class="record-info">
+                        <span class="record-label">上次记录</span>
+                        <span class="record-value" id="last-record">8关</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="role-selection">
+                <h2 class="selection-title">选择你的角色</h2>
+                <div class="role-cards">
+                    <div class="role-card" data-role="mouse" onclick="selectRole('mouse')">
+                        <div class="role-avatar">
+                            <svg viewBox="0 0 100 120" class="character-svg">
+                                <!-- 老鼠身体 -->
+                                <ellipse cx="50" cy="85" rx="30" ry="25" fill="#C0C0C0"/>
+                                <!-- 头部 -->
+                                <circle cx="50" cy="55" r="28" fill="#C0C0C0"/>
+                                <!-- 内脸 -->
+                                <circle cx="50" cy="58" r="22" fill="#FFE4E1"/>
+                                <!-- 耳朵 -->
+                                <circle cx="30" cy="30" r="15" fill="#C0C0C0"/>
+                                <circle cx="70" cy="30" r="15" fill="#C0C0C0"/>
+                                <circle cx="30" cy="30" r="10" fill="#FFB6C1"/>
+                                <circle cx="70" cy="30" r="10" fill="#FFB6C1"/>
+                                <!-- 眼睛 -->
+                                <ellipse cx="40" cy="52" rx="6" ry="8" fill="#333"/>
+                                <ellipse cx="60" cy="52" rx="6" ry="8" fill="#333"/>
+                                <circle cx="42" cy="50" r="2" fill="#FFF"/>
+                                <circle cx="62" cy="50" r="2" fill="#FFF"/>
+                                <!-- 鼻子 -->
+                                <ellipse cx="50" cy="65" rx="5" ry="4" fill="#FF69B4"/>
+                                <!-- 胡须 -->
+                                <line x1="20" y1="62" x2="35" y2="65" stroke="#888" stroke-width="1.5"/>
+                                <line x1="20" y1="68" x2="35" y2="68" stroke="#888" stroke-width="1.5"/>
+                                <line x1="65" y1="65" x2="80" y2="62" stroke="#888" stroke-width="1.5"/>
+                                <line x1="65" y1="68" x2="80" y2="68" stroke="#888" stroke-width="1.5"/>
+                                <!-- 尾巴 -->
+                                <path d="M80 90 Q95 85 90 100" stroke="#A0A0A0" stroke-width="5" fill="none" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h3 class="role-name">逃生者</h3>
+                        <p class="role-desc">找钥匙逃跑</p>
+                        <div class="role-select-hint">点击选择</div>
+                    </div>
+                    <div class="role-card" data-role="cat" onclick="selectRole('cat')">
+                        <div class="role-avatar">
+                            <svg viewBox="0 0 100 120" class="character-svg">
+                                <!-- 身体 -->
+                                <ellipse cx="50" cy="90" rx="35" ry="25" fill="#FFA500"/>
+                                <!-- 头部 -->
+                                <circle cx="50" cy="55" r="30" fill="#FFA500"/>
+                                <!-- 耳朵 -->
+                                <polygon points="25,35 20,5 40,30" fill="#FFA500"/>
+                                <polygon points="75,35 80,5 60,30" fill="#FFA500"/>
+                                <polygon points="28,32 24,10 38,28" fill="#FFE4B5"/>
+                                <polygon points="72,32 76,10 62,28" fill="#FFE4B5"/>
+                                <!-- 眼睛 -->
+                                <ellipse cx="38" cy="50" rx="8" ry="10" fill="#333"/>
+                                <ellipse cx="62" cy="50" rx="8" ry="10" fill="#333"/>
+                                <circle cx="40" cy="48" r="3" fill="#FFF"/>
+                                <circle cx="64" cy="48" r="3" fill="#FFF"/>
+                                <!-- 鼻子 -->
+                                <ellipse cx="50" cy="62" rx="6" ry="5" fill="#FF69B4"/>
+                                <!-- 嘴巴 -->
+                                <path d="M40 70 Q50 78 60 70" stroke="#333" stroke-width="2" fill="none"/>
+                                <!-- 胡须 -->
+                                <line x1="15" y1="58" x2="32" y2="62" stroke="#333" stroke-width="1.5"/>
+                                <line x1="15" y1="65" x2="32" y2="65" stroke="#333" stroke-width="1.5"/>
+                                <line x1="68" y1="62" x2="85" y2="58" stroke="#333" stroke-width="1.5"/>
+                                <line x1="68" y1="65" x2="85" y2="65" stroke="#333" stroke-width="1.5"/>
+                                <!-- 尾巴 -->
+                                <path d="M85 85 Q100 75 95 95" stroke="#FFA500" stroke-width="8" fill="none" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h3 class="role-name">抓捕者</h3>
+                        <p class="role-desc">抓住老鼠</p>
+                        <div class="role-select-hint">点击选择</div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="start-btn" class="start-button disabled" onclick="startGame()">
+                <span class="btn-text">开始游戏</span>
+                <span class="btn-icon">▶</span>
+            </button>
+
+            <button class="help-button" onclick="showHelp()">
+                <span class="help-icon">📖</span>
+                <span>玩法说明</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 玩法说明弹窗 -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">玩法说明</h2>
+            <div class="help-section">
+                <h3>🎯 游戏目标</h3>
+                <p><strong>老鼠：</strong>找到钥匙，打开逃生门逃跑！</p>
+                <p><strong>猫：</strong>抓住老鼠，阻止它逃跑！</p>
+            </div>
+            <div class="help-section">
+                <h3>🎮 操作方式</h3>
+                <p><strong>电脑：</strong>WASD键移动，数字键1-4使用道具</p>
+                <p><strong>手机：</strong>左下角摇杆移动，右下角道具按钮</p>
+            </div>
+            <div class="help-section">
+                <h3>📦 道具说明</h3>
+                <div class="item-list">
+                    <div class="item-info"><span class="item-icon">🔑</span> 钥匙：打开逃生门</div>
+                    <div class="item-info"><span class="item-icon">⏱️</span> 减速：猫变慢5秒</div>
+                    <div class="item-info"><span class="item-icon">❄️</span> 冰冻：猫停止3秒</div>
+                    <div class="item-info"><span class="item-icon">🪤</span> 陷阱：困住猫</div>
+                </div>
+            </div>
+            <button class="modal-close" onclick="closeHelp()">关闭</button>
+        </div>
+    </div>
+
+    <!-- 游戏画面 -->
+    <div id="game-screen" class="screen">
+        <canvas id="game-canvas"></canvas>
+        <div class="game-ui">
+            <div class="game-header-ui">
+                <button class="game-btn" onclick="exitGame()">❌ 退出</button>
+                <span class="level-display">关卡 <span id="level-num">1</span> <span id="ai-count"></span></span>
+                <button class="game-btn" id="pause-btn" onclick="togglePause()">⏸️ 暂停</button>
+            </div>
+            <div class="item-bar">
+                <div class="item-slot" data-slot="1" onclick="useItem(0)">
+                    <span class="slot-icon"></span>
+                    <span class="slot-key">1</span>
+                </div>
+                <div class="item-slot" data-slot="2" onclick="useItem(1)">
+                    <span class="slot-icon"></span>
+                    <span class="slot-key">2</span>
+                </div>
+                <div class="item-slot" data-slot="3" onclick="useItem(2)">
+                    <span class="slot-icon"></span>
+                    <span class="slot-key">3</span>
+                </div>
+                <div class="item-slot" data-slot="4" onclick="useItem(3)">
+                    <span class="slot-icon"></span>
+                    <span class="slot-key">4</span>
+                </div>
+            </div>
+            <div id="mobile-controls" class="mobile-controls">
+                <div id="joystick-area" class="joystick-area">
+                    <div id="joystick-base" class="joystick-base">
+                        <div id="joystick-knob" class="joystick-knob"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结束画面 -->
+    <div id="end-screen" class="screen">
+        <div class="end-content">
+            <div id="end-emoji" class="end-emoji">🎉</div>
+            <h2 id="end-title" class="end-title">恭喜！</h2>
+            <p id="end-message" class="end-message">成功逃脱！</p>
+            <div class="end-buttons">
+                <button id="end-primary-btn" class="end-btn primary" onclick="nextLevel()">下一关 ▶</button>
+                <button class="end-btn secondary" onclick="backToHome()">返回首页 🏠</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/game.js"></script>
 </body>
 </html>
