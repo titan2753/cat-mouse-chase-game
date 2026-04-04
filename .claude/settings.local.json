@@ -7,7 +7,13 @@
       "Bash(git commit:*)",
       "Bash(/Users/liyi/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6/skills/brainstorming/scripts/stop-server.sh /Users/liyi/Documents/claude/be-careful/.superpowers/brainstorm/83915-1775288977)",
       "Bash(open:*)",
-      "mcp__plugin_github_github__get_me"
+      "mcp__plugin_github_github__get_me",
+      "mcp__plugin_github_github__create_repository",
+      "Bash(git remote:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(gh auth:*)",
+      "Bash(GIT_SSL_NO_VERIFY=true git push -u origin main)"
     ]
   }
 }

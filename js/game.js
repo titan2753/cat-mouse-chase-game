@@ -1516,39 +1516,63 @@ function findEmptySlot() {
 
 
 function updateItemBar() {
-    const slots = document.querySelectorAll('.slot-icon');
     const icons = { slow: '⏱️', freeze: '❄️', trap: '🪤', key: '🔑' };
 
-    // 槽位0：钥匙 - 检查玩家或任何AI老鼠是否持有
-    const slot0 = slots[0];
-    const parent0 = slot0.parentElement;
+    // 检查是否有人持有钥匙
     let anyoneHasKey = GameState.hasKey;
-    // 检查所有AI老鼠是否有钥匙
     if (!anyoneHasKey && GameState.aiEntities) {
         anyoneHasKey = GameState.aiEntities.some(ai => ai.hasKey);
     }
 
-    if (anyoneHasKey) {
-        slot0.textContent = icons.key;
-        parent0.classList.add('has-item');
-    } else {
-        slot0.textContent = '';
-        parent0.classList.remove('has-item');
-    }
-
-    // 槽位1-3：道具（只有玩家是老鼠时才显示自己的道具）
-    for (let i = 1; i < 4; i++) {
-        const slot = slots[i];
+    // 更新PC端道具栏
+    const pcSlots = document.querySelectorAll('.item-bar .slot-icon');
+    pcSlots.forEach((slot, i) => {
         const parent = slot.parentElement;
         parent.classList.remove('has-item');
 
-        if (GameState.selectedRole === 'mouse' && GameState.items[i]) {
-            slot.textContent = icons[GameState.items[i]] || '';
-            parent.classList.add('has-item');
+        if (i === 0) {
+            // 槽位0是钥匙
+            if (anyoneHasKey) {
+                slot.textContent = icons.key;
+                parent.classList.add('has-item');
+            } else {
+                slot.textContent = '';
+            }
         } else {
-            slot.textContent = '';
+            // 槽位1-3是道具
+            if (GameState.selectedRole === 'mouse' && GameState.items[i]) {
+                slot.textContent = icons[GameState.items[i]] || '';
+                parent.classList.add('has-item');
+            } else {
+                slot.textContent = '';
+            }
         }
-    }
+    });
+
+    // 更新移动端道具按钮
+    const mobileBtns = document.querySelectorAll('.item-btn');
+    mobileBtns.forEach((btn, i) => {
+        const iconEl = btn.querySelector('.item-icon');
+        btn.classList.remove('has-item');
+
+        if (i === 0) {
+            // 按钮是钥匙
+            if (anyoneHasKey) {
+                iconEl.textContent = icons.key;
+                btn.classList.add('has-item');
+            } else {
+                iconEl.textContent = '';
+            }
+        } else {
+            // 按钮1-3是道具
+            if (GameState.selectedRole === 'mouse' && GameState.items[i]) {
+                iconEl.textContent = icons[GameState.items[i]] || '';
+                btn.classList.add('has-item');
+            } else {
+                iconEl.textContent = '';
+            }
+        }
+    });
 }
 
 function showWarningEffect() {
@@ -1889,9 +1913,18 @@ function startGame() {
 }
 
 function resizeCanvas() {
-    const container = document.getElementById('game-screen');
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+    // 使用窗口实际尺寸，确保全屏
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // 如果在游戏中，需要重新生成关卡以适应新尺寸
+    if (GameState.currentScreen === 'game' && GameState.player) {
+        // 更新门的位置
+        if (GameState.door) {
+            GameState.door.x = canvas.width - 60;
+            GameState.door.y = canvas.height / 2;
+        }
+    }
 }
 
 function showHelp() {
@@ -2001,29 +2034,39 @@ function initJoystick() {
     const joystickBase = document.getElementById('joystick-base');
     const joystickKnob = document.getElementById('joystick-knob');
 
-    if (!joystickArea || !joystickKnob) return;
+    if (!joystickArea || !joystickBase || !joystickKnob) return;
 
     let isDragging = false;
-    const baseRect = joystickBase.getBoundingClientRect();
-    const centerX = baseRect.width / 2;
-    const centerY = baseRect.height / 2;
-    const maxRadius = 35;
+    let baseRect = null;
+    let maxRadius = 50;
 
-    joystickKnob.addEventListener('touchstart', (e) => {
+    // 获取摇杆基座的当前位置
+    const updateBaseRect = () => {
+        baseRect = joystickBase.getBoundingClientRect();
+        maxRadius = baseRect.width / 2 - 30;
+    };
+
+    // 处理触摸开始
+    const handleTouchStart = (e) => {
+        e.preventDefault();
         isDragging = true;
         GameState.joystickActive = true;
-        e.preventDefault();
-    });
+        updateBaseRect();
+    };
 
-    joystickKnob.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
+    // 处理触摸移动
+    const handleTouchMove = (e) => {
+        if (!isDragging || !baseRect) return;
         e.preventDefault();
 
         const touch = e.touches[0];
-        const dx = touch.clientX - baseRect.left - centerX;
-        const dy = touch.clientY - baseRect.top - centerY;
+        const centerX = baseRect.left + baseRect.width / 2;
+        const centerY = baseRect.top + baseRect.height / 2;
 
-        const dist = Math.sqrt(dx*dx + dy*dy);
+        const dx = touch.clientX - centerX;
+        const dy = touch.clientY - centerY;
+
+        const dist = Math.sqrt(dx * dx + dy * dy);
         const clampedDist = Math.min(dist, maxRadius);
 
         const angle = Math.atan2(dy, dx);
@@ -2034,14 +2077,26 @@ function initJoystick() {
 
         GameState.joystickDir.x = x / maxRadius;
         GameState.joystickDir.y = y / maxRadius;
-    });
+    };
 
-    joystickKnob.addEventListener('touchend', (e) => {
+    // 处理触摸结束
+    const handleTouchEnd = (e) => {
         isDragging = false;
         GameState.joystickActive = false;
         joystickKnob.style.transform = 'translate(0px, 0px)';
         GameState.joystickDir = { x: 0, y: 0 };
-    });
+    };
+
+    // 在整个摇杆区域监听触摸事件
+    joystickArea.addEventListener('touchstart', handleTouchStart, { passive: false });
+    joystickArea.addEventListener('touchmove', handleTouchMove, { passive: false });
+    joystickArea.addEventListener('touchend', handleTouchEnd, { passive: false });
+    joystickArea.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+
+    // 同时在旋钮上监听（作为备用）
+    joystickKnob.addEventListener('touchstart', handleTouchStart, { passive: false });
+    joystickKnob.addEventListener('touchmove', handleTouchMove, { passive: false });
+    joystickKnob.addEventListener('touchend', handleTouchEnd, { passive: false });
 }
 
 // ===== 窗口大小调整 =====
@@ -2049,6 +2104,18 @@ window.addEventListener('resize', () => {
     if (canvas && GameState.currentScreen === 'game') {
         resizeCanvas();
     }
+    // 重新初始化摇杆（位置可能改变）
+    initJoystick();
+});
+
+// 屏幕方向改变
+window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+        if (canvas && GameState.currentScreen === 'game') {
+            resizeCanvas();
+        }
+        initJoystick();
+    }, 100);
 });
 
 // ===== 初始化 =====
@@ -2058,9 +2125,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 更新记录显示
     document.getElementById('best-record').textContent = `${GameState.bestRecord}关`;
     document.getElementById('last-record').textContent = `${GameState.lastRecord}关`;
-
-    // 检测移动端
-    if (window.innerWidth <= 768) {
-        document.getElementById('mobile-controls').style.display = 'block';
-    }
 });
+
+// 检测触摸设备
+function isTouchDevice() {
+    return ('ontouchstart' in window) ||
+           (navigator.maxTouchPoints > 0) ||
+           (navigator.msMaxTouchPoints > 0);
+}
