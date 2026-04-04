@@ -663,10 +663,15 @@ function generateLevel(level) {
         GameState.player = new Character(playerStart.x, playerStart.y, 'mouse', true);
 
         for (let i = 0; i < numAI; i++) {
-            const aiStart = findValidAIPosition(width, height, 'cat', i, numAI);
+            // 猫从逃生门一侧（右侧）出现，上下位置随机
+            const aiStart = findCatPositionNearDoor(width, height, i, numAI);
             const cat = new Character(aiStart.x, aiStart.y, 'cat', false);
-            // 猫的速度随关卡提升
-            cat.speed = GameConfig.aiBaseSpeed + (level - 1) * GameConfig.aiSpeedIncrease;
+            // 当敌人数量>1时，速度与玩家一致；否则随关卡提升
+            if (numAI > 1) {
+                cat.speed = GameConfig.playerSpeed;
+            } else {
+                cat.speed = GameConfig.aiBaseSpeed + (level - 1) * GameConfig.aiSpeedIncrease;
+            }
             cat.baseSpeed = cat.speed;
             cat.lastPosition = { x: aiStart.x, y: aiStart.y };
             cat.stuckCount = 0;
@@ -680,9 +685,12 @@ function generateLevel(level) {
         for (let i = 0; i < numAI; i++) {
             const aiStart = findValidAIPosition(width, height, 'mouse', i, numAI);
             const mouse = new Character(aiStart.x, aiStart.y, 'mouse', false);
-            // 老鼠速度与猫相同，增长为原来的1/4
-            const speedIncrease = Math.min((level - 1) * GameConfig.aiSpeedIncrease, 0.3);
-            mouse.speed = GameConfig.aiBaseSpeed + speedIncrease;
+            // 当敌人数量>1时，速度与玩家一致；否则随关卡提升
+            if (numAI > 1) {
+                mouse.speed = GameConfig.playerSpeed;
+            } else {
+                mouse.speed = GameConfig.aiBaseSpeed + (level - 1) * GameConfig.aiSpeedIncrease;
+            }
             mouse.baseSpeed = mouse.speed;
             mouse.hasKey = false;
             mouse.escaped = false;
@@ -702,6 +710,67 @@ function generateLevel(level) {
 
     // 显示AI数量提示
     showAICountHint(numAI);
+}
+
+// 为猫在逃生门附近找到有效位置
+function findCatPositionNearDoor(width, height, index, total) {
+    let position;
+    let attempts = 0;
+
+    while (attempts < 50) {
+        // 在逃生门一侧（右侧），上下位置随机分布
+        position = {
+            x: width - 100 - Math.random() * 80,
+            y: 60 + (index + 1) * (height - 120) / (total + 1) + (Math.random() - 0.5) * 60
+        };
+
+        // 确保在边界内
+        position.y = Math.max(60, Math.min(height - 60, position.y));
+
+        // 检查是否与宝箱重叠
+        let valid = true;
+        for (const chest of GameState.chests) {
+            const dist = Math.sqrt(
+                Math.pow(position.x - chest.x, 2) +
+                Math.pow(position.y - chest.y, 2)
+            );
+            if (dist < 50) {
+                valid = false;
+                break;
+            }
+        }
+
+        // 检查是否与障碍物重叠
+        if (valid) {
+            for (const obs of GameState.obstacles) {
+                if (position.x > obs.x - 40 && position.x < obs.x + obs.width + 40 &&
+                    position.y > obs.y - 40 && position.y < obs.y + obs.height + 40) {
+                    valid = false;
+                    break;
+                }
+            }
+        }
+
+        // 检查是否与其他AI重叠
+        if (valid) {
+            for (const ai of GameState.aiEntities) {
+                const dist = Math.sqrt(
+                    Math.pow(position.x - ai.x, 2) +
+                    Math.pow(position.y - ai.y, 2)
+                );
+                if (dist < 60) {
+                    valid = false;
+                    break;
+                }
+            }
+        }
+
+        if (valid) return position;
+        attempts++;
+    }
+
+    // 默认位置
+    return { x: width - 120, y: height / 2 };
 }
 
 // 为AI寻找有效位置
