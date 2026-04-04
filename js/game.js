@@ -49,7 +49,7 @@ const GameConfig = {
     // 角色
     playerSpeed: 3,
     aiBaseSpeed: 2.5,
-    aiSpeedIncrease: 0.1,
+    aiSpeedIncrease: 0.025, // 每关速度增加（原0.1的1/4）
 
     // 难度配置
     maxObstacles: 15,      // 最大障碍物数量
@@ -680,10 +680,9 @@ function generateLevel(level) {
         for (let i = 0; i < numAI; i++) {
             const aiStart = findValidAIPosition(width, height, 'mouse', i, numAI);
             const mouse = new Character(aiStart.x, aiStart.y, 'mouse', false);
-            // 老鼠速度稍快
-            const baseSpeed = GameConfig.aiBaseSpeed + 0.3;
-            const speedIncrease = Math.min((level - 1) * 0.06, 0.3);
-            mouse.speed = baseSpeed + speedIncrease;
+            // 老鼠速度与猫相同，增长为原来的1/4
+            const speedIncrease = Math.min((level - 1) * GameConfig.aiSpeedIncrease, 0.3);
+            mouse.speed = GameConfig.aiBaseSpeed + speedIncrease;
             mouse.baseSpeed = mouse.speed;
             mouse.hasKey = false;
             mouse.escaped = false;
