@@ -1583,6 +1583,7 @@ function showWarningEffect() {
 // ===== 道具使用 =====
 function useItem(index) {
     if (GameState.isPaused) return;
+    if (!GameState.player) return;
 
     // 槽位0（按键1）是钥匙位，不作为道具使用
     if (index === 0) {
@@ -1591,7 +1592,11 @@ function useItem(index) {
     }
 
     const item = GameState.items[index];
-    if (!item) return;
+    if (!item) {
+        // 没有道具，显示提示
+        showItemHint(index, '空');
+        return;
+    }
 
     soundManager.playItemUse();
 
@@ -1601,17 +1606,34 @@ function useItem(index) {
             ai.applyEffect('slowed', GameConfig.itemDuration.slow);
         }
         GameState.items[index] = null;
+        showItemHint(index, '⏱️ 减速！');
     } else if (item === 'freeze') {
         for (const ai of GameState.aiEntities) {
             ai.applyEffect('frozen', GameConfig.itemDuration.freeze);
         }
         GameState.items[index] = null;
+        showItemHint(index, '❄️ 冰冻！');
     } else if (item === 'trap') {
         placeTrap();
         GameState.items[index] = null;
+        showItemHint(index, '🪤 陷阱！');
     }
 
     updateItemBar();
+}
+
+// 显示道具使用提示
+function showItemHint(index, text) {
+    // 在移动端按钮上显示提示
+    const btns = document.querySelectorAll('.item-btn');
+    if (btns[index]) {
+        const btn = btns[index];
+        btn.querySelector('.item-icon').textContent = text === '空' ? '❌' : '✓';
+
+        setTimeout(() => {
+            updateItemBar();
+        }, 500);
+    }
 }
 
 function placeTrap() {

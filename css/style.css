@@ -77,6 +77,8 @@ body {
     display: none;
     opacity: 0;
     transition: opacity var(--transition-slow);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .screen.active {
@@ -117,7 +119,9 @@ body {
     align-items: center;
     justify-content: flex-start;
     padding: 20px;
-    padding-top: 40px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    min-height: 100%;
 }
 
 .content-wrapper {
@@ -126,8 +130,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 25px;
+    gap: 20px;
     z-index: 1;
+    padding-bottom: 20px;
 }
 
 /* ===== 游戏标题 ===== */
@@ -873,33 +878,102 @@ body {
 
 /* ===== 响应式设计 ===== */
 @media (max-width: 480px) {
+    /* 首页适配 */
+    #home-screen {
+        padding: 15px;
+        padding-top: 20px;
+    }
+
+    .content-wrapper {
+        gap: 15px;
+    }
+
     .game-title {
-        font-size: 32px;
+        font-size: 28px;
+        gap: 10px;
+    }
+
+    .title-emoji {
+        font-size: 1em;
+    }
+
+    .game-subtitle {
+        font-size: 14px;
+        padding: 6px 15px;
     }
 
     .records-container {
         flex-direction: column;
         align-items: center;
+        gap: 10px;
     }
 
     .record-card {
-        width: 80%;
-        max-width: 200px;
+        width: 90%;
+        max-width: 250px;
+        padding: 12px 20px;
+    }
+
+    .record-icon {
+        font-size: 24px;
+    }
+
+    .record-value {
+        font-size: 22px;
+    }
+
+    .selection-title {
+        font-size: 16px;
+        margin-bottom: 10px;
     }
 
     .role-cards {
         flex-direction: column;
         align-items: center;
+        gap: 15px;
     }
 
     .role-card {
-        width: 80%;
-        max-width: 200px;
+        width: 90%;
+        max-width: 180px;
+        padding: 20px 15px;
+    }
+
+    .role-avatar {
+        width: 60px;
+        height: 75px;
+    }
+
+    .role-name {
+        font-size: 16px;
     }
 
     .start-button {
-        padding: 15px 40px;
-        font-size: 20px;
+        padding: 14px 35px;
+        font-size: 18px;
+    }
+
+    .help-button {
+        padding: 10px 20px;
+        font-size: 12px;
+    }
+
+    /* 结束页面适配 */
+    .end-emoji {
+        font-size: 50px;
+    }
+
+    .end-title {
+        font-size: 26px;
+    }
+
+    .end-message {
+        font-size: 14px;
+    }
+
+    .end-btn {
+        padding: 12px 30px;
+        font-size: 15px;
     }
 }
 
