@@ -1802,14 +1802,19 @@ function openChest(chest, entity) {
             }
             GameState.door.isLocked = false;
         } else {
-            // 猫玩家开到钥匙转为随机猫道具
+            // 玩家是猫
             if (isPlayer) {
+                // 猫玩家开到钥匙转为随机猫道具
                 const catItemTypes = ['speedBoost', 'xrayVision', 'fakeChest', 'summonKitten'];
                 const randomCatItem = catItemTypes[Math.floor(Math.random() * catItemTypes.length)];
                 const slotIndex = findEmptyCatSlot();
                 if (slotIndex !== -1) {
                     GameState.catItems[slotIndex] = randomCatItem;
                 }
+            } else {
+                // AI老鼠获得钥匙
+                entity.hasKey = true;
+                GameState.door.isLocked = false;
             }
         }
         updateItemBar();
@@ -1832,14 +1837,24 @@ function openChest(chest, entity) {
                 }
             }
         } else {
-            // 猫玩家开到老鼠道具转为猫道具
+            // 玩家是猫
             if (isPlayer) {
+                // 猫玩家开到老鼠道具转为猫道具
                 const catItemTypes = ['speedBoost', 'xrayVision', 'fakeChest', 'summonKitten'];
                 const randomCatItem = catItemTypes[Math.floor(Math.random() * catItemTypes.length)];
                 const slotIndex = findEmptyCatSlot();
                 if (slotIndex !== -1) {
                     GameState.catItems[slotIndex] = randomCatItem;
                     updateItemBar();
+                }
+            } else {
+                // AI老鼠获得道具，对玩家猫使用
+                if (item === 'slow') {
+                    GameState.player.applyEffect('slowed', GameConfig.itemDuration.slow);
+                } else if (item === 'freeze') {
+                    GameState.player.applyEffect('frozen', GameConfig.itemDuration.freeze);
+                } else if (item === 'trap') {
+                    GameState.player.applyEffect('trapped', GameConfig.itemDuration.trap);
                 }
             }
         }
