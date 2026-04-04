@@ -22,6 +22,12 @@ const GameState = {
     hasKey: false,
     escapedCount: 0,  // 已逃脱的老鼠数量
 
+    // 地图和摄像机
+    mapWidth: 0,
+    mapHeight: 0,
+    cameraX: 0,
+    cameraY: 0,
+
     // 输入状态
     keys: { w: false, a: false, s: false, d: false },
     joystickActive: false,
@@ -54,6 +60,15 @@ const GameConfig = {
     // 难度配置
     maxObstacles: 15,      // 最大障碍物数量
     difficultyThreshold: 5, // 开始增加AI实体的关卡阈值
+
+    // 地图配置
+    mapGrowthStartLevel: 20,  // 从第20关开始地图变大
+    mapGrowthBase: 1.5,       // 初始增大到150%
+    mapGrowthStep: 0.25,      // 每10关增加25%
+    mapGrowthInterval: 10,    // 每10关增长一次
+
+    // 摄像机配置
+    cameraEdgeThreshold: 1/3, // 屏幕边缘1/3处触发
 
     // 道具持续时间（毫秒）
     itemDuration: {
@@ -225,9 +240,11 @@ class Character {
         let newX = this.x + dir.x * actualSpeed;
         let newY = this.y + dir.y * actualSpeed;
 
-        // 边界检查
-        newX = Math.max(this.size, Math.min(canvas.width - this.size, newX));
-        newY = Math.max(this.size, Math.min(canvas.height - this.size, newY));
+        // 边界检查（使用地图边界）
+        const mapW = GameState.mapWidth || canvas.width;
+        const mapH = GameState.mapHeight || canvas.height;
+        newX = Math.max(this.size, Math.min(mapW - this.size, newX));
+        newY = Math.max(this.size, Math.min(mapH - this.size, newY));
 
         // 障碍物碰撞检查
         if (!this.checkObstacleCollision(newX, newY)) {
@@ -304,6 +321,16 @@ class Character {
     }
 
     draw() {
+        // 计算屏幕坐标（应用摄像机偏移）
+        const screenX = this.x - GameState.cameraX;
+        const screenY = this.y - GameState.cameraY;
+
+        // 检查是否在屏幕范围内（优化性能）
+        if (screenX < -this.size - 20 || screenX > canvas.width + this.size + 20 ||
+            screenY < -this.size - 20 || screenY > canvas.height + this.size + 20) {
+            return;
+        }
+
         ctx.save();
 
         // 危险警告 - 红色边框闪烁
@@ -312,14 +339,14 @@ class Character {
             ctx.strokeStyle = `rgba(255, 0, 0, ${pulse})`;
             ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size + 8, 0, Math.PI * 2);
+            ctx.arc(screenX, screenY, this.size + 8, 0, Math.PI * 2);
             ctx.stroke();
 
             // 添加危险光环
             ctx.strokeStyle = `rgba(255, 100, 100, ${pulse * 0.5})`;
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size + 12, 0, Math.PI * 2);
+            ctx.arc(screenX, screenY, this.size + 12, 0, Math.PI * 2);
             ctx.stroke();
         }
 
@@ -328,7 +355,7 @@ class Character {
             ctx.globalAlpha = 0.7;
             ctx.fillStyle = '#87CEEB';
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size + 5, 0, Math.PI * 2);
+            ctx.arc(screenX, screenY, this.size + 5, 0, Math.PI * 2);
             ctx.fill();
         }
 
@@ -336,7 +363,7 @@ class Character {
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size + 3, 0, Math.PI * 2);
+            ctx.arc(screenX, screenY, this.size + 3, 0, Math.PI * 2);
             ctx.stroke();
         }
 
@@ -344,7 +371,7 @@ class Character {
             ctx.strokeStyle = '#C2185B';
             ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size + 5, 0, Math.PI * 2);
+            ctx.arc(screenX, screenY, this.size + 5, 0, Math.PI * 2);
             ctx.stroke();
         }
 
@@ -359,70 +386,73 @@ class Character {
     }
 
     drawMouse() {
+        // 计算屏幕坐标
+        const x = this.x - GameState.cameraX;
+        const y = this.y - GameState.cameraY;
         const bounce = Math.sin(this.animFrame * 0.1) * 2;
 
         // 身体
         ctx.fillStyle = GameConfig.colors.grayMouse;
         ctx.beginPath();
-        ctx.ellipse(this.x, this.y + 5 + bounce, 18, 15, 0, 0, Math.PI * 2);
+        ctx.ellipse(x, y + 5 + bounce, 18, 15, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // 头部
         ctx.beginPath();
-        ctx.arc(this.x, this.y - 5 + bounce, 16, 0, Math.PI * 2);
+        ctx.arc(x, y - 5 + bounce, 16, 0, Math.PI * 2);
         ctx.fill();
 
         // 内脸
         ctx.fillStyle = '#FFE4E1';
         ctx.beginPath();
-        ctx.arc(this.x, this.y - 2 + bounce, 12, 0, Math.PI * 2);
+        ctx.arc(x, y - 2 + bounce, 12, 0, Math.PI * 2);
         ctx.fill();
 
         // 耳朵
         ctx.fillStyle = GameConfig.colors.grayMouse;
         ctx.beginPath();
-        ctx.arc(this.x - 14, this.y - 20 + bounce, 8, 0, Math.PI * 2);
-        ctx.arc(this.x + 14, this.y - 20 + bounce, 8, 0, Math.PI * 2);
+        ctx.arc(x - 14, y - 20 + bounce, 8, 0, Math.PI * 2);
+        ctx.arc(x + 14, y - 20 + bounce, 8, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.fillStyle = GameConfig.colors.pinkSoft;
         ctx.beginPath();
-        ctx.arc(this.x - 14, this.y - 20 + bounce, 5, 0, Math.PI * 2);
-        ctx.arc(this.x + 14, this.y - 20 + bounce, 5, 0, Math.PI * 2);
+        ctx.arc(x - 14, y - 20 + bounce, 5, 0, Math.PI * 2);
+        ctx.arc(x + 14, y - 20 + bounce, 5, 0, Math.PI * 2);
         ctx.fill();
 
         // 眼睛
         ctx.fillStyle = '#333';
         ctx.beginPath();
-        ctx.ellipse(this.x - 6, this.y - 8 + bounce, 4, 5, 0, 0, Math.PI * 2);
-        ctx.ellipse(this.x + 6, this.y - 8 + bounce, 4, 5, 0, 0, Math.PI * 2);
+        ctx.ellipse(x - 6, y - 8 + bounce, 4, 5, 0, 0, Math.PI * 2);
+        ctx.ellipse(x + 6, y - 8 + bounce, 4, 5, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // 眼睛高光
         ctx.fillStyle = '#FFF';
         ctx.beginPath();
-        ctx.arc(this.x - 4, this.y - 10 + bounce, 1.5, 0, Math.PI * 2);
-        ctx.arc(this.x + 8, this.y - 10 + bounce, 1.5, 0, Math.PI * 2);
+        ctx.arc(x - 4, y - 10 + bounce, 1.5, 0, Math.PI * 2);
+        ctx.arc(x + 8, y - 10 + bounce, 1.5, 0, Math.PI * 2);
         ctx.fill();
 
         // 鼻子
         ctx.fillStyle = GameConfig.colors.pinkBright;
         ctx.beginPath();
-        ctx.ellipse(this.x, this.y + bounce, 3, 2.5, 0, 0, Math.PI * 2);
+        ctx.ellipse(x, y + bounce, 3, 2.5, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // 胡须
         ctx.strokeStyle = '#888';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(this.x - 25, this.y - 3 + bounce);
-        ctx.lineTo(this.x - 12, this.y + bounce);
-        ctx.moveTo(this.x - 25, this.y + 3 + bounce);
-        ctx.lineTo(this.x - 12, this.y + 3 + bounce);
-        ctx.moveTo(this.x + 25, this.y - 3 + bounce);
-        ctx.lineTo(this.x + 12, this.y + bounce);
-        ctx.moveTo(this.x + 25, this.y + 3 + bounce);
-        ctx.lineTo(this.x + 12, this.y + 3 + bounce);
+        ctx.moveTo(x - 25, y - 3 + bounce);
+        ctx.lineTo(x - 12, y + bounce);
+        ctx.moveTo(x - 25, y + 3 + bounce);
+        ctx.lineTo(x - 12, y + 3 + bounce);
+        ctx.moveTo(x + 25, y - 3 + bounce);
+        ctx.lineTo(x + 12, y + bounce);
+        ctx.moveTo(x + 25, y + 3 + bounce);
+        ctx.lineTo(x + 12, y + 3 + bounce);
         ctx.stroke();
 
         // 尾巴
@@ -430,97 +460,100 @@ class Character {
         ctx.lineWidth = 4;
         ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.moveTo(this.x + 18, this.y + 15 + bounce);
-        ctx.quadraticCurveTo(this.x + 35, this.y + 10 + bounce, this.x + 30, this.y + 25 + bounce);
+        ctx.moveTo(x + 18, y + 15 + bounce);
+        ctx.quadraticCurveTo(x + 35, y + 10 + bounce, x + 30, y + 25 + bounce);
         ctx.stroke();
     }
 
     drawCat() {
+        // 计算屏幕坐标
+        const x = this.x - GameState.cameraX;
+        const y = this.y - GameState.cameraY;
         const bounce = Math.sin(this.animFrame * 0.08) * 3;
 
         // 身体
         ctx.fillStyle = GameConfig.colors.orange;
         ctx.beginPath();
-        ctx.ellipse(this.x, this.y + 10 + bounce, 22, 18, 0, 0, Math.PI * 2);
+        ctx.ellipse(x, y + 10 + bounce, 22, 18, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // 头部
         ctx.beginPath();
-        ctx.arc(this.x, this.y - 5 + bounce, 20, 0, Math.PI * 2);
+        ctx.arc(x, y - 5 + bounce, 20, 0, Math.PI * 2);
         ctx.fill();
 
         // 耳朵
         ctx.fillStyle = GameConfig.colors.orange;
         ctx.beginPath();
-        ctx.moveTo(this.x - 18, this.y - 20 + bounce);
-        ctx.lineTo(this.x - 25, this.y - 40 + bounce);
-        ctx.lineTo(this.x - 8, this.y - 25 + bounce);
+        ctx.moveTo(x - 18, y - 20 + bounce);
+        ctx.lineTo(x - 25, y - 40 + bounce);
+        ctx.lineTo(x - 8, y - 25 + bounce);
         ctx.closePath();
         ctx.fill();
 
         ctx.beginPath();
-        ctx.moveTo(this.x + 18, this.y - 20 + bounce);
-        ctx.lineTo(this.x + 25, this.y - 40 + bounce);
-        ctx.lineTo(this.x + 8, this.y - 25 + bounce);
+        ctx.moveTo(x + 18, y - 20 + bounce);
+        ctx.lineTo(x + 25, y - 40 + bounce);
+        ctx.lineTo(x + 8, y - 25 + bounce);
         ctx.closePath();
         ctx.fill();
 
         // 内耳
         ctx.fillStyle = '#FFE4B5';
         ctx.beginPath();
-        ctx.moveTo(this.x - 16, this.y - 22 + bounce);
-        ctx.lineTo(this.x - 22, this.y - 35 + bounce);
-        ctx.lineTo(this.x - 10, this.y - 26 + bounce);
+        ctx.moveTo(x - 16, y - 22 + bounce);
+        ctx.lineTo(x - 22, y - 35 + bounce);
+        ctx.lineTo(x - 10, y - 26 + bounce);
         ctx.closePath();
         ctx.fill();
 
         ctx.beginPath();
-        ctx.moveTo(this.x + 16, this.y - 22 + bounce);
-        ctx.lineTo(this.x + 22, this.y - 35 + bounce);
-        ctx.lineTo(this.x + 10, this.y - 26 + bounce);
+        ctx.moveTo(x + 16, y - 22 + bounce);
+        ctx.lineTo(x + 22, y - 35 + bounce);
+        ctx.lineTo(x + 10, y - 26 + bounce);
         ctx.closePath();
         ctx.fill();
 
         // 眼睛
         ctx.fillStyle = '#333';
         ctx.beginPath();
-        ctx.ellipse(this.x - 8, this.y - 10 + bounce, 5, 7, 0, 0, Math.PI * 2);
-        ctx.ellipse(this.x + 8, this.y - 10 + bounce, 5, 7, 0, 0, Math.PI * 2);
+        ctx.ellipse(x - 8, y - 10 + bounce, 5, 7, 0, 0, Math.PI * 2);
+        ctx.ellipse(x + 8, y - 10 + bounce, 5, 7, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // 眼睛高光
         ctx.fillStyle = '#FFF';
         ctx.beginPath();
-        ctx.arc(this.x - 5, this.y - 13 + bounce, 2, 0, Math.PI * 2);
-        ctx.arc(this.x + 11, this.y - 13 + bounce, 2, 0, Math.PI * 2);
+        ctx.arc(x - 5, y - 13 + bounce, 2, 0, Math.PI * 2);
+        ctx.arc(x + 11, y - 13 + bounce, 2, 0, Math.PI * 2);
         ctx.fill();
 
         // 鼻子
         ctx.fillStyle = GameConfig.colors.pinkBright;
         ctx.beginPath();
-        ctx.ellipse(this.x, this.y + 2 + bounce, 4, 3, 0, 0, Math.PI * 2);
+        ctx.ellipse(x, y + 2 + bounce, 4, 3, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // 嘴巴
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(this.x - 6, this.y + 8 + bounce);
-        ctx.quadraticCurveTo(this.x, this.y + 14 + bounce, this.x + 6, this.y + 8 + bounce);
+        ctx.moveTo(x - 6, y + 8 + bounce);
+        ctx.quadraticCurveTo(x, y + 14 + bounce, x + 6, y + 8 + bounce);
         ctx.stroke();
 
         // 胡须
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(this.x - 35, this.y + bounce);
-        ctx.lineTo(this.x - 15, this.y + 2 + bounce);
-        ctx.moveTo(this.x - 35, this.y + 8 + bounce);
-        ctx.lineTo(this.x - 15, this.y + 6 + bounce);
-        ctx.moveTo(this.x + 35, this.y + bounce);
-        ctx.lineTo(this.x + 15, this.y + 2 + bounce);
-        ctx.moveTo(this.x + 35, this.y + 8 + bounce);
-        ctx.lineTo(this.x + 15, this.y + 6 + bounce);
+        ctx.moveTo(x - 35, y + bounce);
+        ctx.lineTo(x - 15, y + 2 + bounce);
+        ctx.moveTo(x - 35, y + 8 + bounce);
+        ctx.lineTo(x - 15, y + 6 + bounce);
+        ctx.moveTo(x + 35, y + bounce);
+        ctx.lineTo(x + 15, y + 2 + bounce);
+        ctx.moveTo(x + 35, y + 8 + bounce);
+        ctx.lineTo(x + 15, y + 6 + bounce);
         ctx.stroke();
 
         // 尾巴
@@ -528,17 +561,14 @@ class Character {
         ctx.lineWidth = 6;
         ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.moveTo(this.x + 22, this.y + 25 + bounce);
-        ctx.quadraticCurveTo(this.x + 40, this.y + 15 + bounce, this.x + 35, this.y + 35 + bounce);
+        ctx.moveTo(x + 22, y + 25 + bounce);
+        ctx.quadraticCurveTo(x + 40, y + 15 + bounce, x + 35, y + 35 + bounce);
         ctx.stroke();
     }
 }
 
 // ===== 关卡生成 =====
 function generateLevel(level) {
-    const width = canvas.width;
-    const height = canvas.height;
-
     // 清空元素
     GameState.obstacles = [];
     GameState.chests = [];
@@ -547,6 +577,24 @@ function generateLevel(level) {
     GameState.hasKey = false;
     GameState.aiEntities = [];
     GameState.escapedCount = 0;
+
+    // ===== 计算地图尺寸 =====
+    if (level < GameConfig.mapGrowthStartLevel) {
+        GameState.mapWidth = canvas.width;
+        GameState.mapHeight = canvas.height;
+    } else {
+        const stages = Math.floor((level - GameConfig.mapGrowthStartLevel) / GameConfig.mapGrowthInterval);
+        const multiplier = GameConfig.mapGrowthBase + stages * GameConfig.mapGrowthStep;
+        GameState.mapWidth = canvas.width * multiplier;
+        GameState.mapHeight = canvas.height * multiplier;
+    }
+
+    // 重置摄像机位置
+    GameState.cameraX = 0;
+    GameState.cameraY = 0;
+
+    const width = GameState.mapWidth;
+    const height = GameState.mapHeight;
 
     // ===== 计算AI数量 =====
     let numAI = 1;
@@ -916,14 +964,16 @@ function showCatchNotification() {
 
 function checkOverlap(obs) {
     const margin = 80;
+    const mapW = GameState.mapWidth || canvas.width;
+    const mapH = GameState.mapHeight || canvas.height;
 
     // 检查与角色起点重叠
-    if (obs.x < 100 + margin && obs.y > canvas.height/2 - margin && obs.y < canvas.height/2 + margin) {
+    if (obs.x < 100 + margin && obs.y > mapH/2 - margin && obs.y < mapH/2 + margin) {
         return true;
     }
 
     // 检查与门重叠
-    if (obs.x > canvas.width - 100 - margin) {
+    if (obs.x > mapW - 100 - margin) {
         return true;
     }
 
@@ -962,7 +1012,7 @@ function checkChestOverlap(chest) {
 
 // ===== 绘制函数 =====
 function drawBackground() {
-    // 渐变背景
+    // 渐变背景（填充整个屏幕）
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, GameConfig.colors.pinkSoft);
     gradient.addColorStop(0.5, GameConfig.colors.purpleSoft);
@@ -970,16 +1020,20 @@ function drawBackground() {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 网格纹理
+    // 网格纹理（根据摄像机偏移）
     ctx.strokeStyle = 'rgba(232, 208, 232, 0.3)';
     ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 50) {
+    const gridSize = 50;
+    const offsetX = -GameState.cameraX % gridSize;
+    const offsetY = -GameState.cameraY % gridSize;
+
+    for (let x = offsetX; x < canvas.width; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, canvas.height);
         ctx.stroke();
     }
-    for (let y = 0; y < canvas.height; y += 50) {
+    for (let y = offsetY; y < canvas.height; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(canvas.width, y);
@@ -989,6 +1043,16 @@ function drawBackground() {
 
 function drawObstacles() {
     for (const obs of GameState.obstacles) {
+        // 计算屏幕坐标
+        const screenX = obs.x - GameState.cameraX;
+        const screenY = obs.y - GameState.cameraY;
+
+        // 检查是否在屏幕范围内
+        if (screenX + obs.width < -20 || screenX > canvas.width + 20 ||
+            screenY + obs.height < -20 || screenY > canvas.height + 20) {
+            continue;
+        }
+
         ctx.save();
 
         // 阴影
@@ -1003,7 +1067,7 @@ function drawObstacles() {
 
         // 绘制矩形
         ctx.beginPath();
-        ctx.roundRect(obs.x, obs.y, obs.width, obs.height, 8);
+        ctx.roundRect(screenX, screenY, obs.width, obs.height, 8);
         ctx.fill();
         ctx.stroke();
 
@@ -1011,7 +1075,7 @@ function drawObstacles() {
         if (obs.type === 'moving') {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
             ctx.beginPath();
-            ctx.roundRect(obs.x + 5, obs.y + 5, obs.width - 10, obs.height - 10, 4);
+            ctx.roundRect(screenX + 5, screenY + 5, obs.width - 10, obs.height - 10, 4);
             ctx.fill();
         }
 
@@ -1021,6 +1085,16 @@ function drawObstacles() {
 
 function drawChests() {
     for (const chest of GameState.chests) {
+        // 计算屏幕坐标
+        const screenX = chest.x - GameState.cameraX;
+        const screenY = chest.y - GameState.cameraY;
+
+        // 检查是否在屏幕范围内
+        if (screenX < -chest.size - 20 || screenX > canvas.width + chest.size + 20 ||
+            screenY < -chest.size - 20 || screenY > canvas.height + chest.size + 20) {
+            continue;
+        }
+
         ctx.save();
 
         // 阴影
@@ -1032,10 +1106,10 @@ function drawChests() {
         if (chest.isOpen) {
             // 打开的宝箱
             ctx.fillStyle = '#8B4513';
-            ctx.fillRect(chest.x - chest.size/2, chest.y - chest.size/2 + 10, chest.size, chest.size/2);
+            ctx.fillRect(screenX - chest.size/2, screenY - chest.size/2 + 10, chest.size, chest.size/2);
 
             ctx.fillStyle = '#DAA520';
-            ctx.fillRect(chest.x - chest.size/2 + 3, chest.y - chest.size/2 + 13, chest.size - 6, chest.size/2 - 6);
+            ctx.fillRect(screenX - chest.size/2 + 3, screenY - chest.size/2 + 13, chest.size - 6, chest.size/2 - 6);
         } else {
             // 关闭的宝箱
             ctx.fillStyle = '#DAA520';
@@ -1043,19 +1117,19 @@ function drawChests() {
             ctx.lineWidth = 2;
 
             // 箱体
-            ctx.fillRect(chest.x - chest.size/2, chest.y - chest.size/2, chest.size, chest.size);
-            ctx.strokeRect(chest.x - chest.size/2, chest.y - chest.size/2, chest.size, chest.size);
+            ctx.fillRect(screenX - chest.size/2, screenY - chest.size/2, chest.size, chest.size);
+            ctx.strokeRect(screenX - chest.size/2, screenY - chest.size/2, chest.size, chest.size);
 
             // 箱盖装饰
             ctx.fillStyle = '#FFD700';
             ctx.beginPath();
-            ctx.arc(chest.x, chest.y - chest.size/2 + 5, 5, 0, Math.PI * 2);
+            ctx.arc(screenX, screenY - chest.size/2 + 5, 5, 0, Math.PI * 2);
             ctx.fill();
 
             // 锁孔
             ctx.fillStyle = '#333';
             ctx.beginPath();
-            ctx.arc(chest.x, chest.y, 3, 0, Math.PI * 2);
+            ctx.arc(screenX, screenY, 3, 0, Math.PI * 2);
             ctx.fill();
         }
 
@@ -1066,9 +1140,19 @@ function drawChests() {
 function drawDoor() {
     if (!GameState.door) return;
 
-    ctx.save();
-
     const door = GameState.door;
+
+    // 计算屏幕坐标
+    const screenX = door.x - GameState.cameraX;
+    const screenY = door.y - GameState.cameraY;
+
+    // 检查是否在屏幕范围内
+    if (screenX + door.width < -20 || screenX > canvas.width + 20 ||
+        screenY - door.height/2 < -20 || screenY + door.height/2 > canvas.height + 20) {
+        return;
+    }
+
+    ctx.save();
 
     // 阴影
     ctx.shadowColor = 'rgba(255, 215, 0, 0.3)';
@@ -1080,14 +1164,14 @@ function drawDoor() {
     ctx.lineWidth = 3;
 
     ctx.beginPath();
-    ctx.roundRect(door.x, door.y - door.height/2, door.width, door.height, 10);
+    ctx.roundRect(screenX, screenY - door.height/2, door.width, door.height, 10);
     ctx.fill();
     ctx.stroke();
 
     // 门把手
     ctx.fillStyle = door.isLocked ? '#666' : GameConfig.colors.pinkBright;
     ctx.beginPath();
-    ctx.arc(door.x + 10, door.y, 6, 0, Math.PI * 2);
+    ctx.arc(screenX + 10, screenY, 6, 0, Math.PI * 2);
     ctx.fill();
 
     // 锁图标
@@ -1095,13 +1179,13 @@ function drawDoor() {
         ctx.fillStyle = '#333';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('🔒', door.x + door.width/2, door.y);
+        ctx.fillText('🔒', screenX + door.width/2, screenY);
     } else {
         // 开门图标
         ctx.fillStyle = '#333';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('🚪', door.x + door.width/2, door.y);
+        ctx.fillText('🚪', screenX + door.width/2, screenY);
     }
 
     ctx.restore();
@@ -1788,29 +1872,70 @@ function drawTraps() {
     for (const trap of GameState.traps) {
         if (!trap.active) continue;
 
+        // 计算屏幕坐标
+        const screenX = trap.x - GameState.cameraX;
+        const screenY = trap.y - GameState.cameraY;
+
+        // 检查是否在屏幕范围内
+        if (screenX < -trap.radius - 20 || screenX > canvas.width + trap.radius + 20 ||
+            screenY < -trap.radius - 20 || screenY > canvas.height + trap.radius + 20) {
+            continue;
+        }
+
         ctx.save();
 
         // 陷阱底座
         ctx.fillStyle = 'rgba(194, 32, 83, 0.3)';
         ctx.beginPath();
-        ctx.arc(trap.x, trap.y, trap.radius, 0, Math.PI * 2);
+        ctx.arc(screenX, screenY, trap.radius, 0, Math.PI * 2);
         ctx.fill();
 
         // 陷阱边框
         ctx.strokeStyle = '#C2185B';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(trap.x, trap.y, trap.radius, 0, Math.PI * 2);
+        ctx.arc(screenX, screenY, trap.radius, 0, Math.PI * 2);
         ctx.stroke();
 
         // 陷阱图标
         ctx.font = '24px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('🪤', trap.x, trap.y);
+        ctx.fillText('🪤', screenX, screenY);
 
         ctx.restore();
     }
+}
+
+// ===== 摄像机系统 =====
+function updateCamera() {
+    if (!GameState.player) return;
+
+    const screenX = GameState.player.x - GameState.cameraX;
+    const screenY = GameState.player.y - GameState.cameraY;
+    const viewWidth = canvas.width;
+    const viewHeight = canvas.height;
+    const threshold = GameConfig.cameraEdgeThreshold;
+
+    // X轴摄像机移动
+    if (screenX < viewWidth * threshold) {
+        GameState.cameraX = GameState.player.x - viewWidth * threshold;
+    } else if (screenX > viewWidth * (1 - threshold)) {
+        GameState.cameraX = GameState.player.x - viewWidth * (1 - threshold);
+    }
+
+    // Y轴摄像机移动
+    if (screenY < viewHeight * threshold) {
+        GameState.cameraY = GameState.player.y - viewHeight * threshold;
+    } else if (screenY > viewHeight * (1 - threshold)) {
+        GameState.cameraY = GameState.player.y - viewHeight * (1 - threshold);
+    }
+
+    // 边界限制（不让摄像机超出地图）
+    const maxCameraX = Math.max(0, GameState.mapWidth - viewWidth);
+    const maxCameraY = Math.max(0, GameState.mapHeight - viewHeight);
+    GameState.cameraX = Math.max(0, Math.min(maxCameraX, GameState.cameraX));
+    GameState.cameraY = Math.max(0, Math.min(maxCameraY, GameState.cameraY));
 }
 
 // ===== 游戏循环 =====
@@ -1845,6 +1970,9 @@ function gameLoop(timestamp) {
 
     // 处理玩家输入
     handleInput();
+
+    // 更新摄像机
+    updateCamera();
 
     // 更新AI
     updateAI();
