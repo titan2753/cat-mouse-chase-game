@@ -64,11 +64,13 @@ class LevelSystem {
             elements.obstacles.push(new Obstacle(this.scene, x, y, w, h, type));
         }
 
-        // 生成宝箱
+        // 生成宝箱 - 第一个宝箱必定包含钥匙
         for (let i = 0; i < config.chestCount; i++) {
             const x = 100 + Math.random() * (width - 200);
             const y = 100 + Math.random() * (height - 200);
-            elements.chests.push(new Chest(this.scene, x, y));
+            // 第一个宝箱保证有钥匙
+            const guaranteedKey = (i === 0);
+            elements.chests.push(new Chest(this.scene, x, y, guaranteedKey));
         }
 
         // 逃生门（右上角偏僻位置）

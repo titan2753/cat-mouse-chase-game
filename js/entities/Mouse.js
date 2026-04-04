@@ -11,19 +11,72 @@ class Mouse {
     }
 
     createSprite(x, y) {
-        const textureKey = 'mouse-' + Date.now();
-        const svg = SVG_ASSETS.mouse;
-        const blob = new Blob([svg], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
+        this.container = this.scene.add.container(x, y);
 
-        this.scene.load.image(textureKey, url);
-        this.scene.load.once('complete', () => {
-            this.sprite = this.scene.physics.add.sprite(x, y, textureKey);
-            this.sprite.setCollideWorldBounds(true);
-            this.sprite.setScale(1.2);
-            URL.revokeObjectURL(url);
-        });
-        this.scene.load.start();
+        this.graphics = this.scene.add.graphics();
+        this.drawMouse(0, 0);
+
+        this.container.add(this.graphics);
+
+        this.scene.physics.add.existing(this.container);
+        this.sprite = this.container;
+        this.sprite.body.setSize(40, 45);
+        this.sprite.body.setOffset(-20, -22);
+        this.sprite.setCollideWorldBounds(true);
+        this.sprite.setDepth(10);
+    }
+
+    drawMouse(offsetX, offsetY) {
+        const g = this.graphics;
+        g.clear();
+
+        // 身体 - 灰色椭圆
+        g.fillStyle(0xC0C0C0, 1);
+        g.fillEllipse(offsetX, offsetY + 12, 32, 24);
+
+        // 头部
+        g.fillCircle(offsetX, offsetY - 5, 22);
+
+        // 脸部内侧 - 浅粉色
+        g.fillStyle(0xFFE4E1, 1);
+        g.fillCircle(offsetX, offsetY - 2, 16);
+
+        // 耳朵 - 大圆耳朵
+        g.fillStyle(0xC0C0C0, 1);
+        g.fillCircle(offsetX - 14, offsetY - 20, 12);
+        g.fillCircle(offsetX + 14, offsetY - 20, 12);
+
+        // 耳朵内部 - 粉色
+        g.fillStyle(0xFFE4B5, 1);
+        g.fillCircle(offsetX - 14, offsetY - 20, 8);
+        g.fillCircle(offsetX + 14, offsetY - 20, 8);
+
+        // 眼睛 - 黑色
+        g.fillStyle(0x333333, 1);
+        g.fillCircle(offsetX - 7, offsetY - 6, 5);
+        g.fillCircle(offsetX + 7, offsetY - 6, 5);
+
+        // 眼睛高光 - 白色
+        g.fillStyle(0xFFFFFF, 1);
+        g.fillCircle(offsetX - 6, offsetY - 8, 2);
+        g.fillCircle(offsetX + 8, offsetY - 8, 2);
+
+        // 鼻子 - 粉色
+        g.fillStyle(0xFF69B4, 1);
+        g.fillEllipse(offsetX, offsetY + 4, 4, 3);
+
+        // 胡须 - 细线
+        g.lineStyle(1, 0x888888, 1);
+        g.lineBetween(offsetX - 15, offsetY + 4, offsetX - 28, offsetY);
+        g.lineBetween(offsetX - 15, offsetY + 7, offsetX - 28, offsetY + 8);
+        g.lineBetween(offsetX + 15, offsetY + 4, offsetX + 28, offsetY);
+        g.lineBetween(offsetX + 15, offsetY + 7, offsetX + 28, offsetY + 8);
+
+        // 尾巴 - 细长曲线
+        g.lineStyle(3, 0xA0A0A0, 1);
+        g.beginPath();
+        g.arc(offsetX + 18, offsetY + 20, 15, Math.PI * 0.3, Math.PI * 1.2);
+        g.strokePath();
     }
 
     move(direction) {
@@ -31,20 +84,20 @@ class Mouse {
 
         switch (direction) {
             case 'up':
-                this.sprite.setVelocity(0, -this.speed);
+                this.sprite.body.setVelocity(0, -this.speed);
                 break;
             case 'down':
-                this.sprite.setVelocity(0, this.speed);
+                this.sprite.body.setVelocity(0, this.speed);
                 break;
             case 'left':
-                this.sprite.setVelocity(-this.speed, 0);
+                this.sprite.body.setVelocity(-this.speed, 0);
                 break;
             case 'right':
-                this.sprite.setVelocity(this.speed, 0);
+                this.sprite.body.setVelocity(this.speed, 0);
                 break;
             case 'stop':
             default:
-                this.sprite.setVelocity(0, 0);
+                this.sprite.body.setVelocity(0, 0);
                 break;
         }
     }
@@ -57,12 +110,12 @@ class Mouse {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance > 10) {
-            this.sprite.setVelocity(
+            this.sprite.body.setVelocity(
                 (dx / distance) * this.speed,
                 (dy / distance) * this.speed
             );
         } else {
-            this.sprite.setVelocity(0, 0);
+            this.sprite.body.setVelocity(0, 0);
         }
     }
 

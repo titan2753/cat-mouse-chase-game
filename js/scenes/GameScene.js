@@ -11,6 +11,9 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
+        // 创建音效管理器
+        this.soundManager = new SoundManager(this);
+
         this.createBackground();
 
         // 创建关卡系统
@@ -45,14 +48,34 @@ class GameScene extends Phaser.Scene {
 
         // 关卡文字动画
         this.showLevelText();
+
+        // 开始BGM
+        this.soundManager.startBGM('normal');
+
+        // 警告距离检测定时器
+        this.warningCooldown = 0;
     }
 
     createBackground() {
-        const graphics = this.add.graphics();
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+
+        // 渐变背景
+        const graphics = this.add.graphics();
         graphics.fillGradientStyle(0xFFB6C1, 0xFFB6C1, 0xDDA0DD, 0xDDA0DD, 1);
         graphics.fillRect(0, 0, width, height);
+
+        // 添加地面纹理效果
+        const floorGraphics = this.add.graphics();
+        floorGraphics.lineStyle(1, 0xE8D0E8, 0.3);
+
+        // 网格线
+        for (let x = 0; x < width; x += 50) {
+            floorGraphics.lineBetween(x, 0, x, height);
+        }
+        for (let y = 0; y < height; y += 50) {
+            floorGraphics.lineBetween(0, y, width, y);
+        }
     }
 
     createCharacters(elements) {
@@ -125,22 +148,29 @@ class GameScene extends Phaser.Scene {
         const height = this.cameras.main.height;
 
         // 退出按钮
-        this.exitBtn = this.add.text(20, 20, '退出', {
+        this.exitBtn = this.add.text(20, 20, '❌ 退出', {
             fontSize: '14px',
             color: '#8B008B',
             backgroundColor: '#FFFFFF',
             padding: { x: 10, y: 5 }
-        }).setInteractive();
-        this.exitBtn.on('pointerdown', () => this.scene.start('HomeScene'));
+        }).setInteractive().setDepth(100);
+        this.exitBtn.on('pointerdown', () => {
+            this.soundManager.playClick();
+            this.soundManager.stopBGM();
+            this.scene.start('HomeScene');
+        });
 
         // 暂停按钮
-        this.pauseBtn = this.add.text(100, 20, '暂停', {
+        this.pauseBtn = this.add.text(100, 20, '⏸️ 暂停', {
             fontSize: '14px',
             color: '#8B008B',
             backgroundColor: '#FFFFFF',
             padding: { x: 10, y: 5 }
-        }).setInteractive();
-        this.pauseBtn.on('pointerdown', () => this.togglePause());
+        }).setInteractive().setDepth(100);
+        this.pauseBtn.on('pointerdown', () => {
+            this.soundManager.playClick();
+            this.togglePause();
+        });
 
         // 关卡显示
         this.add.text(width - 80, 20, `关卡 ${this.currentLevel}`, {
@@ -148,7 +178,7 @@ class GameScene extends Phaser.Scene {
             color: '#8B008B',
             backgroundColor: '#FFFFFF',
             padding: { x: 10, y: 5 }
-        });
+        }).setDepth(100);
     }
 
     showLevelText() {
@@ -161,7 +191,7 @@ class GameScene extends Phaser.Scene {
             color: '#8B008B',
             stroke: '#FFFFFF',
             strokeThickness: 6
-        }).setOrigin(0.5).setAlpha(0);
+        }).setOrigin(0.5).setAlpha(0).setDepth(200);
 
         this.tweens.add({
             targets: levelText,
@@ -177,10 +207,12 @@ class GameScene extends Phaser.Scene {
         this.isPaused = !this.isPaused;
         if (this.isPaused) {
             this.physics.pause();
-            this.pauseBtn.setText('继续');
+            this.pauseBtn.setText('▶️ 继续');
+            this.soundManager.stopBGM();
         } else {
             this.physics.resume();
-            this.pauseBtn.setText('暂停');
+            this.pauseBtn.setText('⏸️ 暂停');
+            this.soundManager.startBGM('normal');
         }
     }
 
@@ -210,11 +242,61 @@ class GameScene extends Phaser.Scene {
         if (this.aiController && this.aiEntity) {
             this.aiController.update(time, this.obstacles);
         }
+
+        // 检测猫和老鼠的距离，播放警告音效和切换BGM
+        this.checkDistanceWarning(time);
+    }
+
+    checkDistanceWarning(time) {
+        if (!this.player || !this.aiEntity) return;
+        if (this.playerRole !== 'mouse') return;
+
+        const playerPos = this.player.getPosition();
+        const aiPos = this.aiEntity.getPosition();
+
+        if (!playerPos || !aiPos) return;
+
+        const distance = Math.sqrt(
+            Math.pow(playerPos.x - aiPos.x, 2) +
+            Math.pow(playerPos.y - aiPos.y, 2)
+        );
+
+        // 猫靠近时切换到紧张BGM
+        if (distance < 200) {
+            this.soundManager.changeBGMType('chase');
+
+            // 播放警告音效（每2秒一次）
+            if (time - this.warningCooldown > 2000) {
+                this.soundManager.playWarning();
+                this.warningCooldown = time;
+
+                // 显示警告效果
+                this.showWarningEffect();
+            }
+        } else if (distance > 300) {
+            this.soundManager.changeBGMType('normal');
+        }
+    }
+
+    showWarningEffect() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+
+        // 闪烁红色边框
+        const warning = this.add.rectangle(width / 2, height / 2, width, height, 0xFF0000, 0.2).setDepth(150);
+        this.tweens.add({
+            targets: warning,
+            alpha: 0,
+            duration: 300,
+            onComplete: () => warning.destroy()
+        });
     }
 
     useItem(slotIndex) {
         const item = this.itemSystem.useItem(slotIndex);
         if (!item || !this.aiEntity) return;
+
+        this.soundManager.playItemUse();
 
         if (item === 'slow') {
             this.aiEntity.applySlow(GAME_CONFIG.ITEM_DURATION.slow);
@@ -251,6 +333,8 @@ class GameScene extends Phaser.Scene {
     onCatCatchMouse() {
         if (this.gameResult) return;
 
+        this.soundManager.playCaught();
+
         if (this.playerRole === 'mouse') {
             this.gameResult = 'mouse_caught';
             this.endGame(false);
@@ -266,6 +350,9 @@ class GameScene extends Phaser.Scene {
         const item = chest.open();
         if (item) {
             this.itemSystem.addItem(item);
+            this.soundManager.playChestOpen();
+            this.soundManager.playItemPickup();
+
             this.tweens.add({
                 targets: chest.sprite,
                 scale: 1.2,
@@ -283,9 +370,11 @@ class GameScene extends Phaser.Scene {
                 this.door.unlock();
                 this.itemSystem.useKey();
                 this.gameResult = 'mouse_escapes';
+                this.soundManager.playEscape();
                 this.endGame(true);
             } else if (this.door.isOpen()) {
                 this.gameResult = 'mouse_escapes';
+                this.soundManager.playEscape();
                 this.endGame(true);
             }
         } else {
@@ -298,6 +387,7 @@ class GameScene extends Phaser.Scene {
 
     endGame(playerWins) {
         this.physics.pause();
+        this.soundManager.stopBGM();
 
         this.time.delayedCall(500, () => {
             this.scene.start('EndScene', {

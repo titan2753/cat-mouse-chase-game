@@ -11,9 +11,23 @@ class EndScene extends Phaser.Scene {
     }
 
     create() {
+        // 创建音效管理器
+        this.soundManager = new SoundManager(this);
+
         this.createBackground();
         this.createContent();
         this.createButtons();
+
+        // 播放结局音效和BGM
+        this.playEndingSound();
+    }
+
+    playEndingSound() {
+        if (this.playerWins) {
+            this.soundManager.startBGM('win');
+        } else {
+            this.soundManager.startBGM('lose');
+        }
     }
 
     createBackground() {
@@ -32,6 +46,34 @@ class EndScene extends Phaser.Scene {
         const height = this.cameras.main.height;
         graphics.fillGradientStyle(color1, color1, color2, color2, 1);
         graphics.fillRect(0, 0, width, height);
+
+        // 添加粒子效果
+        if (this.playerWins) {
+            this.createCelebrationParticles();
+        }
+    }
+
+    createCelebrationParticles() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+
+        // 创建彩带效果
+        for (let i = 0; i < 20; i++) {
+            const x = Math.random() * width;
+            const confetti = this.add.text(x, -20, ['🎉', '🎊', '✨', '⭐'][Math.floor(Math.random() * 4)], {
+                fontSize: '24px'
+            }).setOrigin(0.5);
+
+            this.tweens.add({
+                targets: confetti,
+                y: height + 50,
+                x: x + (Math.random() - 0.5) * 200,
+                angle: Math.random() * 360,
+                duration: 2000 + Math.random() * 2000,
+                repeat: -1,
+                delay: Math.random() * 1000
+            });
+        }
     }
 
     getResultKey() {
@@ -66,6 +108,14 @@ class EndScene extends Phaser.Scene {
         this.add.text(width / 2, height * 0.55, content.description, {
             fontSize: '16px',
             color: '#666666'
+        }).setOrigin(0.5);
+
+        // 显示关卡数
+        this.add.text(width / 2, height * 0.63, `第 ${this.level} 关`, {
+            fontSize: '18px',
+            color: '#8B008B',
+            backgroundColor: '#FFFFFF',
+            padding: { x: 15, y: 5 }
         }).setOrigin(0.5);
     }
 
@@ -105,7 +155,7 @@ class EndScene extends Phaser.Scene {
         const height = this.cameras.main.height;
 
         if (this.playerWins) {
-            const nextBtn = this.add.text(width / 2, height * 0.7, '下一关 ▶', {
+            const nextBtn = this.add.text(width / 2, height * 0.72, '下一关 ▶', {
                 fontSize: '18px',
                 color: '#FFFFFF',
                 backgroundColor: '#4CAF50',
@@ -113,13 +163,15 @@ class EndScene extends Phaser.Scene {
             }).setOrigin(0.5).setInteractive();
 
             nextBtn.on('pointerdown', () => {
+                this.soundManager.playClick();
+                this.soundManager.stopBGM();
                 this.scene.start('GameScene', {
                     role: this.playerRole,
                     level: this.level + 1
                 });
             });
         } else {
-            const retryBtn = this.add.text(width / 2, height * 0.7, '再试一次 🔄', {
+            const retryBtn = this.add.text(width / 2, height * 0.72, '再试一次 🔄', {
                 fontSize: '18px',
                 color: '#FFFFFF',
                 backgroundColor: '#9370DB',
@@ -127,6 +179,8 @@ class EndScene extends Phaser.Scene {
             }).setOrigin(0.5).setInteractive();
 
             retryBtn.on('pointerdown', () => {
+                this.soundManager.playClick();
+                this.soundManager.stopBGM();
                 this.scene.start('GameScene', {
                     role: this.playerRole,
                     level: this.level
@@ -142,6 +196,8 @@ class EndScene extends Phaser.Scene {
         }).setOrigin(0.5).setInteractive();
 
         homeBtn.on('pointerdown', () => {
+            this.soundManager.playClick();
+            this.soundManager.stopBGM();
             this.scene.start('HomeScene');
         });
     }

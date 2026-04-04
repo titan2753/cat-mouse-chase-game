@@ -6,6 +6,9 @@ class HomeScene extends Phaser.Scene {
     }
 
     create() {
+        // 创建音效管理器
+        this.soundManager = new SoundManager(this);
+
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
@@ -129,6 +132,8 @@ class HomeScene extends Phaser.Scene {
 
     selectRole(role, card) {
         this.selectedRole = role;
+        this.soundManager.playClick();
+
         const borderColor = role === 'mouse' ? 0xFF69B4 : 0xDDA0DD;
 
         // 重置所有卡片边框
@@ -165,6 +170,7 @@ class HomeScene extends Phaser.Scene {
 
         this.startButton.on('pointerdown', () => {
             if (this.selectedRole) {
+                this.soundManager.playClick();
                 this.scene.start('GameScene', { role: this.selectedRole, level: 1 });
             }
         });
