@@ -822,13 +822,43 @@ function generateLevel(level) {
     }
 
     // 逃生门
+    let doorX, doorY;
+    let doorPosition;  // 记录门的位置类型
+
+    if (level >= GameConfig.mapGrowthStartLevel) {
+        // 第20关及以后，逃生门随机位置
+        const rand = Math.random();
+        if (rand < 0.5) {
+            // 50% 右侧
+            doorPosition = 'right';
+            doorX = width - 60;
+            doorY = 100 + Math.random() * (height - 200);  // 避免太靠边
+        } else if (rand < 0.75) {
+            // 25% 上侧
+            doorPosition = 'top';
+            doorX = 100 + Math.random() * (width - 200);
+            doorY = 50;  // 门中心位置，绘制范围 y-30 到 y+30
+        } else {
+            // 25% 下侧
+            doorPosition = 'bottom';
+            doorX = 100 + Math.random() * (width - 200);
+            doorY = height - 50;  // 门中心位置，绘制范围 height-80 到 height-20
+        }
+    } else {
+        // 第20关之前，固定在右侧中间
+        doorPosition = 'right';
+        doorX = width - 60;
+        doorY = height / 2;
+    }
+
     GameState.door = {
-        x: width - 60,
-        y: height / 2,
+        x: doorX,
+        y: doorY,
         width: 40,
         height: 60,
         isLocked: true,
-        color: GameConfig.colors.gold
+        color: GameConfig.colors.gold,
+        position: doorPosition  // 记录位置类型
     };
 
     // ===== 创建角色 =====
