@@ -666,11 +666,14 @@ function generateLevel(level) {
     // 清空元素
     GameState.obstacles = [];
     GameState.chests = [];
-    GameState.traps = [];  // 清空陷阱
+    GameState.traps = [];
     GameState.items = [null, null, null, null];
     GameState.hasKey = false;
     GameState.aiEntities = [];
     GameState.escapedCount = 0;
+    GameState.kittens = [];       // 清空小猫
+    GameState.fakeChests = [];    // 清空假宝箱
+    GameState.catItems = [null, null, null, null];  // 清空猫道具栏
 
     // ===== 计算地图尺寸 =====
     if (level < GameConfig.mapGrowthStartLevel) {
