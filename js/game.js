@@ -90,9 +90,10 @@ const GameConfig = {
     // 玩家是猫时，宝箱道具分配概率（降低冰冻概率）
     catGameChestItemWeights: {
         key: 30,    // 30% 钥匙
-        slow: 30,   // 30% 减速
-        freeze: 10, // 10% 冰冻（降低）
-        trap: 30    // 30% 陷阱
+        slow: 15,   // 15% 减速
+        freeze: 5,  // 5% 冰冻
+        trap: 10,   // 10% 陷阱
+        nothing: 40 // 40% 无道具
     },
 
     // 猫专属道具配置
@@ -2008,6 +2009,7 @@ function openChest(chest, entity) {
             }
         }
     }
+    // 'nothing' 什么都不做
 }
 
 function findEmptySlot() {
