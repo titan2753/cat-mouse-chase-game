@@ -79,10 +79,20 @@ const GameConfig = {
     itemDuration: {
         slow: 5000,
         freeze: 3000,
-        freezeAsCat: 1000,  // 玩家是猫被冰冻时的持续时间（缩短以保持可玩性）
         trap: 4000,
         invincible: 3000,   // 开局无敌时间
-        invincibleFlash: 1000  // 无敌结束前闪烁时间
+        invincibleFlash: 1000,  // 无敌结束前闪烁时间
+        // 玩家是猫时，被道具影响的持续时间（更短以保持可玩性）
+        freezeAsCat: 1000,  // 玩家猫被冰冻只有1秒
+        trapAsCat: 1000     // 玩家猫被陷阱限制移动只有1秒
+    },
+
+    // 玩家是猫时，宝箱道具分配概率（降低冰冻概率）
+    catGameChestItemWeights: {
+        key: 30,    // 30% 钥匙
+        slow: 30,   // 30% 减速
+        freeze: 10, // 10% 冰冻（降低）
+        trap: 30    // 30% 陷阱
     },
 
     // 猫专属道具配置
@@ -635,6 +645,22 @@ class Character {
     }
 }
 
+// 按权重随机选择道具（玩家是猫时使用）
+function getWeightedRandomItem() {
+    const weights = GameConfig.catGameChestItemWeights;
+    const items = Object.keys(weights);
+    const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+
+    let random = Math.random() * totalWeight;
+    for (const item of items) {
+        random -= weights[item];
+        if (random <= 0) {
+            return item;
+        }
+    }
+    return items[items.length - 1];
+}
+
 // ===== 关卡生成 =====
 function generateLevel(level) {
     // 清空元素
@@ -783,9 +809,8 @@ function generateLevel(level) {
                     // 确保有足够的钥匙让AI老鼠能开门
                     chest.item = 'key';
                 } else {
-                    // 其他宝箱随机分配老鼠可用道具（AI老鼠会用这些道具攻击猫）
-                    const items = ['key', 'slow', 'freeze', 'trap'];
-                    chest.item = items[Math.floor(Math.random() * items.length)];
+                    // 其他宝箱按权重分配老鼠可用道具（降低冰冻概率）
+                    chest.item = getWeightedRandomItem();
                 }
             }
             GameState.chests.push(chest);
@@ -830,22 +855,6 @@ function generateLevel(level) {
         GameState.player = new Character(playerStart.x, playerStart.y, 'cat', true);
         // 开局3秒无敌
         GameState.player.applyEffect('invincible', GameConfig.itemDuration.invincible);
-
-        // 当老鼠数量>=4时，自动召唤一只小猫辅助
-        if (numAI >= 4) {
-            const kitten = {
-                x: GameState.player.x,
-                y: GameState.player.y + 60,
-                speed: GameConfig.playerSpeed * 0.8,
-                size: 25,  // 小猫大小
-                active: true,
-                createdAt: Date.now(),
-                duration: Infinity,  // 永久存在（直到关卡结束）
-                stuckCount: 0,
-                lastPosition: null
-            };
-            GameState.kittens.push(kitten);
-        }
 
         for (let i = 0; i < numAI; i++) {
             const aiStart = findValidAIPosition(width, height, 'mouse', i, numAI);
@@ -1344,29 +1353,11 @@ function updateKittens() {
     for (let i = GameState.kittens.length - 1; i >= 0; i--) {
         const kitten = GameState.kittens[i];
 
-        // 检查是否过期（永久小猫不过期）
-        if (kitten.duration !== Infinity && now - kitten.createdAt > kitten.duration) {
+        // 检查是否过期
+        if (now - kitten.createdAt > kitten.duration) {
             GameState.kittens.splice(i, 1);
             continue;
         }
-
-        // 检测是否卡住
-        if (kitten.lastPosition) {
-            const moved = Math.sqrt(
-                Math.pow(kitten.x - kitten.lastPosition.x, 2) +
-                Math.pow(kitten.y - kitten.lastPosition.y, 2)
-            );
-            if (moved < 0.5) {
-                kitten.stuckCount++;
-                if (kitten.stuckCount > 15) {
-                    kitten.isStuck = true;
-                }
-            } else {
-                kitten.stuckCount = Math.max(0, kitten.stuckCount - 1);
-                kitten.isStuck = false;
-            }
-        }
-        kitten.lastPosition = { x: kitten.x, y: kitten.y };
 
         // 寻找最近的老鼠
         let nearestMouse = null;
@@ -1389,31 +1380,8 @@ function updateKittens() {
             const dx = nearestMouse.x - kitten.x;
             const dy = nearestMouse.y - kitten.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-
-            let dirX = (dx / dist);
-            let dirY = (dy / dist);
-
-            // 障碍物检测和绕行
-            const kittenSize = kitten.size || 25;
-            const nextX = kitten.x + dirX * kitten.speed;
-            const nextY = kitten.y + dirY * kitten.speed;
-
-            if (checkObstacleCollisionForKitten(nextX, nextY, kittenSize)) {
-                // 碰撞障碍物，尝试绕行
-                const avoidDir = findKittenAvoidDirection(kitten, {x: dirX, y: dirY});
-                dirX = avoidDir.x;
-                dirY = avoidDir.y;
-            }
-
-            // 移动小猫
-            const finalX = kitten.x + dirX * kitten.speed;
-            const finalY = kitten.y + dirY * kitten.speed;
-
-            // 边界检查
-            const mapW = GameState.mapWidth || canvas.width;
-            const mapH = GameState.mapHeight || canvas.height;
-            kitten.x = Math.max(kittenSize, Math.min(mapW - kittenSize, finalX));
-            kitten.y = Math.max(kittenSize, Math.min(mapH - kittenSize, finalY));
+            kitten.x += (dx / dist) * kitten.speed;
+            kitten.y += (dy / dist) * kitten.speed;
         }
 
         // 小猫抓老鼠检测
@@ -1432,43 +1400,6 @@ function updateKittens() {
             }
         }
     }
-}
-
-// 小猫障碍物碰撞检测（独立函数）
-function checkObstacleCollisionForKitten(x, y, size) {
-    for (const obs of GameState.obstacles) {
-        if (!obs) continue;
-        if (x + size/2 > obs.x && x - size/2 < obs.x + obs.width &&
-            y + size/2 > obs.y && y - size/2 < obs.y + obs.height) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// 小猫绕障碍物方向
-function findKittenAvoidDirection(kitten, currentDir) {
-    const angles = [-Math.PI/4, Math.PI/4, -Math.PI/2, Math.PI/2, -Math.PI*3/4, Math.PI*3/4];
-    const kittenSize = kitten.size || 25;
-
-    for (const angleOffset of angles) {
-        const angle = Math.atan2(currentDir.y, currentDir.x) + angleOffset;
-        const testDir = {
-            x: Math.cos(angle),
-            y: Math.sin(angle)
-        };
-
-        const testX = kitten.x + testDir.x * kitten.speed * 5;
-        const testY = kitten.y + testDir.y * kitten.speed * 5;
-
-        if (!checkObstacleCollisionForKitten(testX, testY, kittenSize)) {
-            return testDir;
-        }
-    }
-
-    // 都不行，随机方向
-    const randomAngle = Math.random() * Math.PI * 2;
-    return { x: Math.cos(randomAngle), y: Math.sin(randomAngle) };
 }
 
 function updateAI() {
@@ -1974,9 +1905,11 @@ function openChest(chest, entity) {
                 if (item === 'slow') {
                     GameState.player.applyEffect('slowed', GameConfig.itemDuration.slow);
                 } else if (item === 'freeze') {
-                    GameState.player.applyEffect('frozen', GameConfig.itemDuration.freezeAsCat);  // 玩家猫被冰冻只有1秒
+                    // 玩家猫被冰冻只有1秒
+                    GameState.player.applyEffect('frozen', GameConfig.itemDuration.freezeAsCat);
                 } else if (item === 'trap') {
-                    GameState.player.applyEffect('trapped', GameConfig.itemDuration.trap);
+                    // 玩家猫被陷阱限制移动只有1秒
+                    GameState.player.applyEffect('trapped', GameConfig.itemDuration.trapAsCat);
                 }
             }
         }
@@ -2209,12 +2142,9 @@ function summonKitten() {
         x: GameState.player.x + Math.cos(angle) * 60,
         y: GameState.player.y + Math.sin(angle) * 60,
         speed: GameConfig.playerSpeed * 0.8,
-        size: 25,  // 小猫大小
         active: true,
         createdAt: Date.now(),
-        duration: GameConfig.catItems.summonKitten.duration,
-        stuckCount: 0,
-        lastPosition: null
+        duration: GameConfig.catItems.summonKitten.duration
     };
     GameState.kittens.push(kitten);
 }
