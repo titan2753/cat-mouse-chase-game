@@ -798,14 +798,30 @@ function generateLevel(level) {
 
         if (attempts < 30) {
             if (GameState.selectedRole === 'mouse') {
-                // 玩家是老鼠：原有逻辑
-                // 前numAI个宝箱必定有钥匙（确保每个老鼠都有机会拿到钥匙）
-                if (i < numAI) {
+                // 玩家是老鼠：降低钥匙概率
+                if (i === 0) {
+                    // 第一个宝箱必定有钥匙（确保游戏可进行）
                     chest.item = 'key';
+                } else if (i < numAI) {
+                    // 其他前numAI个宝箱：50%概率钥匙，50%其他道具
+                    if (Math.random() < 0.5) {
+                        chest.item = 'key';
+                    } else {
+                        const items = ['slow', 'freeze', 'trap'];
+                        chest.item = items[Math.floor(Math.random() * items.length)];
+                    }
                 } else {
-                    // 其他宝箱随机分配道具
-                    const items = ['key', 'slow', 'freeze', 'trap'];
-                    chest.item = items[Math.floor(Math.random() * items.length)];
+                    // 其他宝箱：钥匙概率12.5%，其他道具各29.17%
+                    const rand = Math.random();
+                    if (rand < 0.125) {
+                        chest.item = 'key';
+                    } else if (rand < 0.417) {
+                        chest.item = 'slow';
+                    } else if (rand < 0.709) {
+                        chest.item = 'freeze';
+                    } else {
+                        chest.item = 'trap';
+                    }
                 }
             } else {
                 // 玩家是猫：分配老鼠道具和钥匙
