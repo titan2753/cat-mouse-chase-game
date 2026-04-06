@@ -10,7 +10,6 @@ const GameState = {
     lastRecord: 8,
     isPaused: false,
     gameResult: null,
-    tacticHintShown: false,  // 战术提示是否已显示
 
     // 游戏元素
     player: null,
@@ -250,14 +249,15 @@ class Character {
             warning: false,  // 危险警告状态
             invincible: false,   // 无敌状态
             invincibleFlash: false,  // 无敌闪烁提示
-            speedBoost: false   // 加速效果
+            speedBoost: false,   // 加速效果
+            dizzy: false   // 晕眩状态（碰到移动障碍物）
         };
         this.effectTimers = {};
         this.animFrame = 0;
     }
 
     move(dir) {
-        if (this.effects.frozen || this.effects.trapped) return;
+        if (this.effects.frozen || this.effects.trapped || this.effects.dizzy) return;
 
         this.direction = dir;
 
@@ -444,6 +444,23 @@ class Character {
             this.drawMouse();
         } else {
             this.drawCat();
+        }
+
+        // 晕眩效果：头顶旋转星星
+        if (this.effects.dizzy) {
+            const time = Date.now() / 200;
+            const starCount = 3;
+            for (let i = 0; i < starCount; i++) {
+                const angle = time + (i * Math.PI * 2 / starCount);
+                const radius = 20;
+                const starX = screenX + Math.cos(angle) * radius;
+                const starY = screenY - this.size - 15 + Math.sin(angle) * 8;
+
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('💫', starX, starY);
+            }
         }
 
         // 加速效果：速度线
@@ -957,12 +974,6 @@ function generateLevel(level) {
 
     // 显示AI数量提示
     showAICountHint(numAI);
-
-    // 第40关起，显示战术提示（玩家是老鼠时）
-    if (level >= 40 && GameState.selectedRole === 'mouse' && numAI > 1 && !GameState.tacticHintShown) {
-        showTacticHint();
-        GameState.tacticHintShown = true;
-    }
 }
 
 // 为猫在逃生门附近找到有效位置
@@ -1120,31 +1131,6 @@ function showAICountHint(count) {
         document.body.appendChild(hint);
         setTimeout(() => hint.remove(), 2000);
     }
-}
-
-// 显示战术提示
-function showTacticHint() {
-    const hint = document.createElement('div');
-    hint.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(255, 69, 0, 0.95);
-        color: white;
-        padding: 20px 40px;
-        border-radius: 25px;
-        font-size: 22px;
-        font-family: 'Comic Sans MS', cursive;
-        z-index: 1001;
-        animation: fadeInOut 3s ease-in-out forwards;
-        text-align: center;
-        box-shadow: 0 0 30px rgba(255, 69, 0, 0.5);
-    `;
-    hint.innerHTML = `🐱 猫咪获得智慧<br>懂得运用战术！`;
-
-    document.body.appendChild(hint);
-    setTimeout(() => hint.remove(), 3000);
 }
 
 // 更新AI数量显示
@@ -1436,6 +1422,7 @@ function updateMovingObstacles() {
     for (const obs of GameState.obstacles) {
         if (obs.type !== 'moving') continue;
 
+        // 更新位置
         if (obs.direction === 'horizontal') {
             obs.x += obs.speed;
             if (obs.x > obs.startX + obs.range || obs.x < obs.startX - obs.range) {
@@ -1445,6 +1432,22 @@ function updateMovingObstacles() {
             obs.y += obs.speed;
             if (obs.y > obs.startY + obs.range || obs.y < obs.startY - obs.range) {
                 obs.speed = -obs.speed;
+            }
+        }
+
+        // 检测与角色的碰撞
+        const allCharacters = [GameState.player, ...GameState.aiEntities.filter(ai => !ai.caught && !ai.escaped)];
+        for (const char of allCharacters) {
+            if (!char || char.effects.dizzy || char.effects.invincible) continue;
+
+            // 简单矩形与圆形碰撞检测
+            const closestX = Math.max(obs.x, Math.min(char.x, obs.x + obs.width));
+            const closestY = Math.max(obs.y, Math.min(char.y, obs.y + obs.height));
+            const distance = Math.sqrt(Math.pow(char.x - closestX, 2) + Math.pow(char.y - closestY, 2));
+
+            if (distance < char.size / 2) {
+                // 碰撞！应用晕眩效果
+                char.applyEffect('dizzy', 500);
             }
         }
     }
@@ -1618,57 +1621,8 @@ function updateAI() {
 
         if (GameState.selectedRole === 'mouse') {
             // AI猫追逐玩家老鼠
-            // 第40关起启用包抄战术
-            if (GameState.currentLevel >= 40 && GameState.aiEntities.length > 1) {
-                // 包抄战术：分配包围角度
-                const activeCats = GameState.aiEntities.filter(a => !a.escaped && !a.caught && !a.effects.frozen && !a.effects.trapped);
-                const catIndex = activeCats.indexOf(ai);
-
-                if (catIndex >= 0) {
-                    // 为每只猫分配均匀分布的包围角度
-                    if (ai.encircleAngle === undefined) {
-                        ai.encircleAngle = (catIndex / activeCats.length) * Math.PI * 2;
-                    }
-
-                    // 包抄半径：逐渐收紧
-                    const baseRadius = 200;  // 初始包围半径
-                    const minRadius = 50;    // 最小包围半径
-                    const shrinkRate = 0.5;  // 收紧速度
-
-                    // 计算目标位置：玩家周围均匀分布
-                    const targetX = GameState.player.x + Math.cos(ai.encircleAngle) * baseRadius;
-                    const targetY = GameState.player.y + Math.sin(ai.encircleAngle) * baseRadius;
-
-                    // 计算向目标移动的方向
-                    const toTargetX = targetX - ai.x;
-                    const toTargetY = targetY - ai.y;
-                    const toTargetDist = Math.sqrt(toTargetX * toTargetX + toTargetY * toTargetY);
-
-                    // 同时也向玩家移动一部分（混合策略）
-                    const chaseWeight = 0.3;  // 直接追逐的权重
-                    const encircleWeight = 0.7;  // 包抄的权重
-
-                    if (toTargetDist > 10) {
-                        dir.x = (toTargetX / toTargetDist) * encircleWeight + (dx / dist) * chaseWeight;
-                        dir.y = (toTargetY / toTargetDist) * encircleWeight + (dy / dist) * chaseWeight;
-                    } else {
-                        // 到达包抄位置后，逐渐向玩家移动
-                        dir.x = dx / dist;
-                        dir.y = dy / dist;
-                    }
-
-                    // 动态调整包围角度（跟随玩家移动）
-                    ai.encircleAngle += 0.01;  // 缓慢旋转
-                } else {
-                    // 单只猫时直接追逐
-                    dir.x = dx / dist;
-                    dir.y = dy / dist;
-                }
-            } else {
-                // 第40关之前，直接追逐
-                dir.x = dx / dist;
-                dir.y = dy / dist;
-            }
+            dir.x = dx / dist;
+            dir.y = dy / dist;
 
             // 如果卡住，尝试绕行
             if (ai.isStuck) {
