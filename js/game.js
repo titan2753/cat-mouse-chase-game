@@ -798,29 +798,35 @@ function generateLevel(level) {
 
         if (attempts < 30) {
             if (GameState.selectedRole === 'mouse') {
-                // 玩家是老鼠：降低钥匙概率
+                // 玩家是老鼠：降低钥匙概率，增加无道具概率
                 if (i === 0) {
                     // 第一个宝箱必定有钥匙（确保游戏可进行）
                     chest.item = 'key';
                 } else if (i < numAI) {
-                    // 其他前numAI个宝箱：50%概率钥匙，50%其他道具
-                    if (Math.random() < 0.5) {
+                    // 其他前numAI个宝箱：有效道具概率下降1/3，约33%无道具
+                    const rand = Math.random();
+                    if (rand < 0.33) {
                         chest.item = 'key';
-                    } else {
+                    } else if (rand < 0.67) {
+                        // 其他有效道具
                         const items = ['slow', 'freeze', 'trap'];
                         chest.item = items[Math.floor(Math.random() * items.length)];
+                    } else {
+                        chest.item = 'nothing';  // 无道具
                     }
                 } else {
-                    // 其他宝箱：钥匙概率12.5%，其他道具各29.17%
+                    // 其他宝箱：有效道具概率下降1/3，约33%无道具
                     const rand = Math.random();
-                    if (rand < 0.125) {
-                        chest.item = 'key';
-                    } else if (rand < 0.417) {
-                        chest.item = 'slow';
-                    } else if (rand < 0.709) {
-                        chest.item = 'freeze';
+                    if (rand < 0.083) {
+                        chest.item = 'key';        // 8.3%
+                    } else if (rand < 0.277) {
+                        chest.item = 'slow';       // 19.4%
+                    } else if (rand < 0.471) {
+                        chest.item = 'freeze';     // 19.4%
+                    } else if (rand < 0.665) {
+                        chest.item = 'trap';       // 19.4%
                     } else {
-                        chest.item = 'trap';
+                        chest.item = 'nothing';    // 33.5% 无道具
                     }
                 }
             } else {
