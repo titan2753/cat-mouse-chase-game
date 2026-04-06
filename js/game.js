@@ -1662,10 +1662,10 @@ function checkCollisions() {
 
     // 如果玩家是猫，检查胜负条件
     if (GameState.selectedRole === 'cat') {
-        // 计算抓获比例
         const totalMice = GameState.aiEntities.length;
         const caughtMice = GameState.aiEntities.filter(ai => ai.caught).length;
         const escapedMice = GameState.aiEntities.filter(ai => ai.escaped).length;
+        const activeMice = totalMice - caughtMice - escapedMice;
         const catchRatio = caughtMice / totalMice;
 
         // 抓到超过50%老鼠即获胜（即使有老鼠逃脱也赢）
@@ -1684,8 +1684,10 @@ function checkCollisions() {
             return;
         }
 
-        // 只有在抓到<=50%的情况下，有老鼠逃脱才输
-        if (escapedMice > 0 && catchRatio <= 0.5) {
+        // 检查是否还有可能抓到 > 50%
+        const maxPossibleCaught = caughtMice + activeMice;
+        if (escapedMice > 0 && maxPossibleCaught / totalMice <= 0.5) {
+            // 无法再抓到超过50%，猫输
             endGame(false, 'mouse_escapes_as_cat');
             return;
         }
@@ -1758,22 +1760,28 @@ function checkCollisions() {
                         ai.escaped = true;
                         GameState.escapedCount++;
 
-                        // 检查抓到比例是否>50%
+                        // 检查当前状态
                         const totalMice = GameState.aiEntities.length;
                         const caughtMice = GameState.aiEntities.filter(a => a.caught).length;
-                        const catchRatio = caughtMice / totalMice;
+                        const escapedMice = GameState.aiEntities.filter(a => a.escaped).length;
+                        const activeMice = totalMice - caughtMice - escapedMice;
 
-                        if (catchRatio > 0.5) {
-                            // 即使有老鼠逃脱，抓到>50%就赢
+                        // 如果已抓到 > 50%，猫赢
+                        if (caughtMice / totalMice > 0.5) {
                             GameState.caughtCount = caughtMice;
                             GameState.totalMice = totalMice;
                             endGame(true, 'cat_wins');
                             return;
-                        } else {
-                            // 抓到<=50%，有老鼠逃脱就输
+                        }
+
+                        // 计算是否还能达到 > 50%：已抓到的 + 剩余活跃的老鼠
+                        const maxPossibleCaught = caughtMice + activeMice;
+                        if (maxPossibleCaught / totalMice <= 0.5) {
+                            // 无法再抓到超过50%，猫输
                             endGame(false, 'mouse_escapes_as_cat');
                             return;
                         }
+                        // 否则继续游戏
                     }
                 }
             }
