@@ -63,7 +63,7 @@ const GameConfig = {
     aiSpeedIncrease: 0.025, // 每关速度增加（原0.1的1/4）
 
     // 难度配置
-    maxObstacles: 15,      // 最大障碍物数量
+    maxObstacles: 25,      // 最大障碍物数量（原15，增加以适应1.5倍数量）
     difficultyThreshold: 5, // 开始增加AI实体的关卡阈值
 
     // 地图配置
@@ -728,7 +728,7 @@ function generateLevel(level) {
     }
 
     // ===== 障碍物数量（有上限）=====
-    let numObstacles = 3 + level;
+    let numObstacles = Math.floor((3 + level) * 1.5);  // 增加1.5倍
     numObstacles = Math.min(numObstacles, GameConfig.maxObstacles);
 
     // 生成固定障碍物（墙壁）
