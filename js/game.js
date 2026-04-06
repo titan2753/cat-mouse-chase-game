@@ -873,6 +873,22 @@ function generateLevel(level) {
             mouse.isStuck = false;
             GameState.aiEntities.push(mouse);
         }
+
+        // 当老鼠数量>=4时，自动召唤一只小猫辅助
+        if (numAI >= 4) {
+            const kitten = {
+                x: GameState.player.x,
+                y: GameState.player.y + 60,
+                speed: GameConfig.playerSpeed * 0.8,
+                size: 25,
+                active: true,
+                createdAt: Date.now(),
+                duration: Infinity,  // 永久存在
+                stuckCount: 0,
+                lastPosition: null
+            };
+            GameState.kittens.push(kitten);
+        }
     }
 
     // 更新道具栏显示
@@ -1353,11 +1369,25 @@ function updateKittens() {
     for (let i = GameState.kittens.length - 1; i >= 0; i--) {
         const kitten = GameState.kittens[i];
 
-        // 检查是否过期
-        if (now - kitten.createdAt > kitten.duration) {
+        // 检查是否过期（永久小猫不过期）
+        if (kitten.duration !== Infinity && now - kitten.createdAt > kitten.duration) {
             GameState.kittens.splice(i, 1);
             continue;
         }
+
+        // 检测是否卡住
+        if (kitten.lastPosition) {
+            const moved = Math.sqrt(
+                Math.pow(kitten.x - kitten.lastPosition.x, 2) +
+                Math.pow(kitten.y - kitten.lastPosition.y, 2)
+            );
+            if (moved < 0.5) {
+                kitten.stuckCount = (kitten.stuckCount || 0) + 1;
+            } else {
+                kitten.stuckCount = 0;
+            }
+        }
+        kitten.lastPosition = { x: kitten.x, y: kitten.y };
 
         // 寻找最近的老鼠
         let nearestMouse = null;
@@ -1380,8 +1410,32 @@ function updateKittens() {
             const dx = nearestMouse.x - kitten.x;
             const dy = nearestMouse.y - kitten.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            kitten.x += (dx / dist) * kitten.speed;
-            kitten.y += (dy / dist) * kitten.speed;
+
+            let dirX = dx / dist;
+            let dirY = dy / dist;
+
+            const kittenSize = kitten.size || 25;
+
+            // 障碍物检测和绕行
+            const nextX = kitten.x + dirX * kitten.speed;
+            const nextY = kitten.y + dirY * kitten.speed;
+
+            if (checkKittenObstacleCollision(nextX, nextY, kittenSize)) {
+                // 碰撞障碍物，尝试绕行
+                const avoidDir = findKittenAvoidDirection(kitten, dirX, dirY);
+                dirX = avoidDir.x;
+                dirY = avoidDir.y;
+            }
+
+            // 移动小猫
+            const finalX = kitten.x + dirX * kitten.speed;
+            const finalY = kitten.y + dirY * kitten.speed;
+
+            // 边界检查
+            const mapW = GameState.mapWidth || canvas.width;
+            const mapH = GameState.mapHeight || canvas.height;
+            kitten.x = Math.max(kittenSize, Math.min(mapW - kittenSize, finalX));
+            kitten.y = Math.max(kittenSize, Math.min(mapH - kittenSize, finalY));
         }
 
         // 小猫抓老鼠检测
@@ -1400,6 +1454,43 @@ function updateKittens() {
             }
         }
     }
+}
+
+// 小猫障碍物碰撞检测
+function checkKittenObstacleCollision(x, y, size) {
+    for (const obs of GameState.obstacles) {
+        if (!obs) continue;
+        if (x + size/2 > obs.x && x - size/2 < obs.x + obs.width &&
+            y + size/2 > obs.y && y - size/2 < obs.y + obs.height) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// 小猫绕障碍物方向
+function findKittenAvoidDirection(kitten, dirX, dirY) {
+    const angles = [-Math.PI/4, Math.PI/4, -Math.PI/2, Math.PI/2, -Math.PI*3/4, Math.PI*3/4];
+    const kittenSize = kitten.size || 25;
+
+    for (const angleOffset of angles) {
+        const angle = Math.atan2(dirY, dirX) + angleOffset;
+        const testDir = {
+            x: Math.cos(angle),
+            y: Math.sin(angle)
+        };
+
+        const testX = kitten.x + testDir.x * kitten.speed * 5;
+        const testY = kitten.y + testDir.y * kitten.speed * 5;
+
+        if (!checkKittenObstacleCollision(testX, testY, kittenSize)) {
+            return testDir;
+        }
+    }
+
+    // 都不行，随机方向
+    const randomAngle = Math.random() * Math.PI * 2;
+    return { x: Math.cos(randomAngle), y: Math.sin(randomAngle) };
 }
 
 function updateAI() {
@@ -2142,9 +2233,12 @@ function summonKitten() {
         x: GameState.player.x + Math.cos(angle) * 60,
         y: GameState.player.y + Math.sin(angle) * 60,
         speed: GameConfig.playerSpeed * 0.8,
+        size: 25,
         active: true,
         createdAt: Date.now(),
-        duration: GameConfig.catItems.summonKitten.duration
+        duration: GameConfig.catItems.summonKitten.duration,
+        stuckCount: 0,
+        lastPosition: null
     };
     GameState.kittens.push(kitten);
 }
