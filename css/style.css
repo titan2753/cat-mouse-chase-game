@@ -887,9 +887,17 @@ body {
 /* ===== 响应式设计 ===== */
 @media (max-width: 480px) {
     /* 首页适配 */
+    body {
+        /* 确保移动端也显示渐变背景 */
+        background: linear-gradient(135deg, var(--pink-soft) 0%, var(--purple-soft) 50%, var(--purple-bright) 100%);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+    }
+
     #home-screen {
         padding: 15px;
         padding-top: 20px;
+        background: transparent;
     }
 
     .content-wrapper {
