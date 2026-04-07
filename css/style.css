@@ -156,12 +156,6 @@ body {
     font-family: var(--font-display);
     font-size: clamp(36px, 8vw, 56px);
     font-weight: 700;
-    color: var(--purple-deep);
-    text-shadow:
-        3px 3px 0 var(--white),
-        -1px -1px 0 var(--white),
-        1px -1px 0 var(--white),
-        -1px 1px 0 var(--white);
     display: flex;
     align-items: center;
     justify-content: center;
