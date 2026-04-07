@@ -6,8 +6,8 @@ const GameState = {
     currentScreen: 'home',
     selectedRole: null,
     currentLevel: 1,
-    bestRecord: 15,
-    lastRecord: 8,
+    bestRecord: parseInt(localStorage.getItem('catMouseGame_bestRecord')) || 15,
+    lastRecord: parseInt(localStorage.getItem('catMouseGame_lastRecord')) || 8,
     isPaused: false,
     gameResult: null,
 
@@ -2646,6 +2646,9 @@ function endGame(playerWins, result) {
         if (GameState.currentLevel > GameState.bestRecord) {
             GameState.bestRecord = GameState.currentLevel;
         }
+        // 保存到 localStorage
+        localStorage.setItem('catMouseGame_bestRecord', GameState.bestRecord);
+        localStorage.setItem('catMouseGame_lastRecord', GameState.lastRecord);
     }
 
     // 显示结束画面
