@@ -2992,22 +2992,39 @@ window.addEventListener('orientationchange', () => {
 
 // ===== 全屏功能 =====
 function toggleFullscreen() {
-    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        // 进入全屏
+    const btn = document.getElementById('fullscreen-btn');
+    const isCurrentlyFullscreen = btn && btn.getAttribute('data-active') === 'true';
+
+    if (!isCurrentlyFullscreen) {
+        // 进入全屏模式 - 使用Safari兼容的方式
+        // 1. 滚动到顶部，隐藏Safari地址栏
+        window.scrollTo(0, 1);
+
+        // 2. 设置body标记，应用全屏样式
+        document.body.classList.add('ios-fullscreen');
+
+        // 3. 尝试使用标准API（部分浏览器支持）
         if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen();
-        } else if (document.documentElement.webkitRequestFullscreen) {
-            document.documentElement.webkitRequestFullscreen();
+            document.documentElement.requestFullscreen().catch(() => {
+                // Safari 不支持，回退到CSS方案
+            });
         }
-        document.body.classList.add('fullscreen-active');
+
+        // 4. 标记按钮状态
+        if (btn) {
+            btn.setAttribute('data-active', 'true');
+            btn.textContent = '✕';
+        }
     } else {
         // 退出全屏
         if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
+            document.exitFullscreen().catch(() => {});
         }
-        document.body.classList.remove('fullscreen-active');
+        document.body.classList.remove('ios-fullscreen');
+        if (btn) {
+            btn.setAttribute('data-active', 'false');
+            btn.textContent = '⛶';
+        }
     }
 }
 
@@ -3024,19 +3041,9 @@ function updateFullscreenButton() {
     } else {
         btn.style.display = 'none';
     }
-
-    // 如果当前不是全屏，显示进入全屏图标；否则显示退出图标
-    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        btn.textContent = '⛶';
-    } else {
-        btn.textContent = '✕';
-    }
 }
 
 // 监听全屏状态变化
-document.addEventListener('fullscreenchange', updateFullscreenButton);
-document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
-
 // ===== 初始化 =====
 document.addEventListener('DOMContentLoaded', () => {
     initJoystick();
@@ -3047,6 +3054,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初始化全屏按钮
     updateFullscreenButton();
+});
+
+// iOS Safari: 页面加载后滚动隐藏地址栏
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        window.scrollTo(0, 1);
+    }, 100);
 });
 
 // 检测触摸设备
