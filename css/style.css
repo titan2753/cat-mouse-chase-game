@@ -47,20 +47,21 @@
 html {
     width: 100%;
     height: 100%;
-    height: -webkit-fill-available;
     background: linear-gradient(135deg, var(--pink-soft) 0%, var(--purple-soft) 50%, var(--purple-bright) 100%);
     background-size: 400% 400%;
 }
 
 body {
     width: 100%;
-    min-height: calc(100% + env(safe-area-inset-bottom));
+    min-height: 100%;
     overflow: hidden;
     font-family: var(--font-body);
     touch-action: none;
     background: linear-gradient(135deg, var(--pink-soft) 0%, var(--purple-soft) 50%, var(--purple-bright) 100%);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
 }
 
 @keyframes gradientShift {
@@ -73,8 +74,9 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
     display: none;
     opacity: 0;
     transition: opacity var(--transition-slow);
@@ -124,7 +126,6 @@ body {
     padding-top: 30px;
     padding-bottom: calc(30px + env(safe-area-inset-bottom));
     min-height: 100%;
-    position: relative;
 }
 
 .content-wrapper {
@@ -533,8 +534,8 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
 }
 
@@ -547,7 +548,7 @@ body {
 
 /* 全屏模式 */
 /* 横屏适配 */
-@media (orientation: landscape) and (max-height: 800px) {
+@media (orientation: landscape) and (max-height: 500px) {
     #game-canvas {
         width: 100vw;
         height: 100dvh;
@@ -577,17 +578,6 @@ body {
 
     .control-hint {
         font-size: 10px !important;
-    }
-}
-
-/* 横屏 + 触摸设备（针对桌面应用模式） */
-@media (orientation: landscape) and (hover: none) and (pointer: coarse) {
-    .mobile-controls {
-        padding-left: 30px !important;
-        padding-right: 30px !important;
-    }
-    .joystick-container {
-        margin-left: 15px;
     }
 }
 
@@ -720,7 +710,7 @@ body {
         height: 200px;
         justify-content: space-between;
         align-items: flex-end;
-        padding: 20px 30px;
+        padding: 20px 30px 20px 30px !important;
         pointer-events: none;
         z-index: 100;
     }
