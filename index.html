@@ -246,6 +246,19 @@
         </div>
     </div>
 
+    <!-- Vibe-Eyes 调试客户端 -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vibe-eyes-client/dist/index.min.js"></script>
+    <script>
+        // 初始化 Vibe-Eyes 客户端，用于游戏调试和可视化
+        if (typeof initializeVibeEyes === 'function') {
+            const vibeEyes = initializeVibeEyes({
+                serverUrl: 'ws://localhost:8869',
+                captureDelay: 2000,
+                autoCapture: true
+            });
+        }
+    </script>
     <script src="js/game.js"></script>
 </body>
 </html>
