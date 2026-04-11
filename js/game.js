@@ -3017,28 +3017,49 @@ document.addEventListener('DOMContentLoaded', () => {
     // 更新记录显示
     document.getElementById('best-record').textContent = `${GameState.bestRecord}关`;
     document.getElementById('last-record').textContent = `${GameState.lastRecord}关`;
+
+    // 修复 iOS standalone 模式底部白边
+    fixStandaloneSafeArea();
 });
 
-// iOS Safari: 页面加载后滚动隐藏地址栏
-window.addEventListener('load', hideSafariBar);
+// 修复 iOS standalone 模式安全区域白边
+function fixStandaloneSafeArea() {
+    // 检测是否在 standalone 模式
+    const isStandalone = window.navigator.standalone === true;
+    if (isStandalone) {
+        // 获取安全区域高度
+        const tempEl = document.createElement('div');
+        tempEl.style.position = 'fixed';
+        tempEl.style.bottom = '0';
+        tempEl.style.height = 'env(safe-area-inset-bottom)';
+        tempEl.style.visibility = 'hidden';
+        document.body.appendChild(tempEl);
+        const insetBottom = parseFloat(getComputedStyle(tempEl).height) || 0;
+        document.body.removeChild(tempEl);
 
-// ===== 初始化 =====
-document.addEventListener('DOMContentLoaded', () => {
-    initJoystick();
+        // 设置 body 最小高度为视口高度 + 安全区域
+        const viewportHeight = window.innerHeight;
+        document.body.style.minHeight = (viewportHeight + insetBottom) + 'px';
+        document.documentElement.style.height = (viewportHeight + insetBottom) + 'px';
 
-    // 更新记录显示
-    document.getElementById('best-record').textContent = `${GameState.bestRecord}关`;
-    document.getElementById('last-record').textContent = `${GameState.lastRecord}关`;
-
-    // 初始化全屏按钮
-    updateFullscreenButton();
-});
+        // 同时更新所有 screen 容器
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.style.minHeight = (viewportHeight + insetBottom) + 'px';
+        });
+    }
+}
 
 // iOS Safari: 页面加载后滚动隐藏地址栏
 window.addEventListener('load', () => {
+    fixStandaloneSafeArea();
     setTimeout(() => {
         window.scrollTo(0, 1);
     }, 100);
+});
+
+// 窗口大小变化时重新计算
+window.addEventListener('resize', () => {
+    fixStandaloneSafeArea();
 });
 
 // 检测触摸设备

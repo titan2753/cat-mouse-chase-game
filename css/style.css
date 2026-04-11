@@ -563,7 +563,7 @@ body {
 
     .mobile-controls {
         height: 120px !important;
-        padding: 10px 30px 30px 30px !important;
+        padding: 10px 20px 30px 30px !important;
     }
 
     .item-btn {
@@ -574,10 +574,6 @@ body {
     .joystick-area {
         width: 100px !important;
         height: 100px !important;
-    }
-
-    .joystick-container {
-        margin-left: 10px !important;
     }
 
     .control-hint {
@@ -714,9 +710,35 @@ body {
         height: 200px;
         justify-content: space-between;
         align-items: flex-end;
-        padding: 20px 30px 20px 30px !important;
+        padding: 20px 30px;
         pointer-events: none;
         z-index: 100;
+    }
+
+    /* 横屏触摸设备 */
+    @media (orientation: landscape) and (max-height: 500px) {
+        .mobile-controls {
+            padding: 10px 30px 30px 30px !important;
+            height: 120px !important;
+        }
+
+        .joystick-container {
+            margin-left: 10px;
+        }
+
+        .item-btn {
+            width: 50px !important;
+            height: 50px !important;
+        }
+
+        .joystick-area {
+            width: 100px !important;
+            height: 100px !important;
+        }
+
+        .control-hint {
+            font-size: 10px !important;
+        }
     }
 
     .pc-only {
@@ -1069,17 +1091,5 @@ body {
 
     #home-screen {
         background: transparent !important;
-    }
-}
-
-/* ===== 横屏通用适配（确保所有设备生效） ===== */
-@media (orientation: landscape) {
-    .mobile-controls {
-        padding-left: 30px !important;
-        padding-right: 30px !important;
-    }
-
-    .joystick-container {
-        margin-left: 0 !important;
     }
 }
