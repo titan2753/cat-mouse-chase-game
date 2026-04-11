@@ -2774,8 +2774,7 @@ function startGame() {
 }
 
 function resizeCanvas() {
-    // 使用窗口实际尺寸，确保全屏
-    // 移动端优先使用 visualViewport 获取准确可视区域
+    // 使用窗口实际尺寸
     if (window.visualViewport) {
         canvas.width = window.visualViewport.width;
         canvas.height = window.visualViewport.height;
@@ -2784,18 +2783,19 @@ function resizeCanvas() {
         canvas.height = window.innerHeight;
     }
 
-    // 独立模式（添加到桌面）下，底部安全区域需要额外填充
-    // 通过临时元素读取 safe-area-inset-bottom
-    const tempEl = document.createElement('div');
-    tempEl.style.position = 'fixed';
-    tempEl.style.bottom = '0';
-    tempEl.style.height = 'env(safe-area-inset-bottom)';
-    tempEl.style.visibility = 'hidden';
-    document.body.appendChild(tempEl);
-    const insetBottom = parseFloat(getComputedStyle(tempEl).height) || 0;
-    document.body.removeChild(tempEl);
-    if (insetBottom > 0) {
-        canvas.height += insetBottom;
+    // 独立模式下，安全区域在视口外，需要额外填充
+    if (window.navigator.standalone) {
+        const tempEl = document.createElement('div');
+        tempEl.style.position = 'fixed';
+        tempEl.style.bottom = '0';
+        tempEl.style.height = 'env(safe-area-inset-bottom)';
+        tempEl.style.visibility = 'hidden';
+        document.body.appendChild(tempEl);
+        const insetBottom = parseFloat(getComputedStyle(tempEl).height) || 0;
+        document.body.removeChild(tempEl);
+        if (insetBottom > 0) {
+            canvas.height += insetBottom;
+        }
     }
 
     // 如果在游戏中，需要重新生成关卡以适应新尺寸
