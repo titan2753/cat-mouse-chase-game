@@ -2784,6 +2784,20 @@ function resizeCanvas() {
         canvas.height = window.innerHeight;
     }
 
+    // 独立模式（添加到桌面）下，底部安全区域需要额外填充
+    // 通过临时元素读取 safe-area-inset-bottom
+    const tempEl = document.createElement('div');
+    tempEl.style.position = 'fixed';
+    tempEl.style.bottom = '0';
+    tempEl.style.height = 'env(safe-area-inset-bottom)';
+    tempEl.style.visibility = 'hidden';
+    document.body.appendChild(tempEl);
+    const insetBottom = parseFloat(getComputedStyle(tempEl).height) || 0;
+    document.body.removeChild(tempEl);
+    if (insetBottom > 0) {
+        canvas.height += insetBottom;
+    }
+
     // 如果在游戏中，需要重新生成关卡以适应新尺寸
     if (GameState.currentScreen === 'game' && GameState.player) {
         // 更新门的位置
@@ -3008,7 +3022,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // iOS Safari: 页面加载后滚动隐藏地址栏
 window.addEventListener('load', hideSafariBar);
 
-// 监听全屏状态变化
 // ===== 初始化 =====
 document.addEventListener('DOMContentLoaded', () => {
     initJoystick();
