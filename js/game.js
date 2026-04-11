@@ -2775,15 +2775,24 @@ function startGame() {
 
 function resizeCanvas() {
     // 使用窗口实际尺寸，确保全屏
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    // 移动端优先使用 visualViewport 获取准确可视区域
+    if (window.visualViewport) {
+        canvas.width = window.visualViewport.width;
+        canvas.height = window.visualViewport.height;
+    } else {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
 
     // 如果在游戏中，需要重新生成关卡以适应新尺寸
     if (GameState.currentScreen === 'game' && GameState.player) {
         // 更新门的位置
         if (GameState.door) {
-            GameState.door.x = canvas.width - 60;
-            GameState.door.y = canvas.height / 2;
+            const mapW = GameState.mapWidth || canvas.width;
+            const mapH = GameState.mapHeight || canvas.height;
+            // 门在地图右侧
+            GameState.door.x = mapW - 60;
+            GameState.door.y = mapH / 2;
         }
     }
 }
@@ -2967,6 +2976,7 @@ window.addEventListener('resize', () => {
     }
     // 重新初始化摇杆（位置可能改变）
     initJoystick();
+    updateFullscreenButton();
 });
 
 // 屏幕方向改变
@@ -2976,8 +2986,56 @@ window.addEventListener('orientationchange', () => {
             resizeCanvas();
         }
         initJoystick();
+        updateFullscreenButton();
     }, 100);
 });
+
+// ===== 全屏功能 =====
+function toggleFullscreen() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        // 进入全屏
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+        }
+        document.body.classList.add('fullscreen-active');
+    } else {
+        // 退出全屏
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+        document.body.classList.remove('fullscreen-active');
+    }
+}
+
+function updateFullscreenButton() {
+    const btn = document.getElementById('fullscreen-btn');
+    if (!btn) return;
+
+    // 移动端横屏时显示全屏按钮
+    const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+    const isMobile = ('ontouchstart' in window);
+
+    if (isMobile && isLandscape) {
+        btn.style.display = 'block';
+    } else {
+        btn.style.display = 'none';
+    }
+
+    // 如果当前不是全屏，显示进入全屏图标；否则显示退出图标
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        btn.textContent = '⛶';
+    } else {
+        btn.textContent = '✕';
+    }
+}
+
+// 监听全屏状态变化
+document.addEventListener('fullscreenchange', updateFullscreenButton);
+document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
 
 // ===== 初始化 =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -2986,6 +3044,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 更新记录显示
     document.getElementById('best-record').textContent = `${GameState.bestRecord}关`;
     document.getElementById('last-record').textContent = `${GameState.lastRecord}关`;
+
+    // 初始化全屏按钮
+    updateFullscreenButton();
 });
 
 // 检测触摸设备
