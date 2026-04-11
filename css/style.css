@@ -548,7 +548,7 @@ body {
 
 /* 全屏模式 */
 /* 横屏适配 */
-@media (orientation: landscape) and (max-height: 500px) {
+@media (orientation: landscape) and (max-height: 800px) {
     #game-canvas {
         width: 100vw;
         height: 100dvh;
@@ -563,7 +563,7 @@ body {
 
     .mobile-controls {
         height: 120px !important;
-        padding: 10px 20px 30px 30px !important;
+        padding: 10px 30px 30px 30px !important;
     }
 
     .item-btn {
@@ -578,6 +578,17 @@ body {
 
     .control-hint {
         font-size: 10px !important;
+    }
+}
+
+/* 横屏 + 触摸设备（针对桌面应用模式） */
+@media (orientation: landscape) and (hover: none) and (pointer: coarse) {
+    .mobile-controls {
+        padding-left: 30px !important;
+        padding-right: 30px !important;
+    }
+    .joystick-container {
+        margin-left: 15px;
     }
 }
 
