@@ -64,7 +64,6 @@ body {
     background: linear-gradient(135deg, var(--pink-soft) 0%, var(--purple-soft) 50%, var(--purple-bright) 100%);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 @keyframes gradientShift {
@@ -78,7 +77,8 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100dvh;
+    height: -webkit-fill-available;
     display: none;
     opacity: 0;
     transition: opacity var(--transition-slow);
@@ -126,8 +126,9 @@ body {
     justify-content: flex-start;
     padding: 20px;
     padding-top: 30px;
-    padding-bottom: 30px;
+    padding-bottom: calc(30px + env(safe-area-inset-bottom));
     min-height: 100%;
+    height: -webkit-fill-available;
 }
 
 .content-wrapper {
