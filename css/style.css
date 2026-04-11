@@ -576,6 +576,10 @@ body {
         height: 100px !important;
     }
 
+    .joystick-container {
+        margin-left: 10px !important;
+    }
+
     .control-hint {
         font-size: 10px !important;
     }
@@ -1065,5 +1069,17 @@ body {
 
     #home-screen {
         background: transparent !important;
+    }
+}
+
+/* ===== 横屏通用适配（确保所有设备生效） ===== */
+@media (orientation: landscape) {
+    .mobile-controls {
+        padding-left: 30px !important;
+        padding-right: 30px !important;
+    }
+
+    .joystick-container {
+        margin-left: 0 !important;
     }
 }
