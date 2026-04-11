@@ -2976,7 +2976,6 @@ window.addEventListener('resize', () => {
     }
     // 重新初始化摇杆（位置可能改变）
     initJoystick();
-    updateFullscreenButton();
 });
 
 // 屏幕方向改变
@@ -2986,62 +2985,28 @@ window.addEventListener('orientationchange', () => {
             resizeCanvas();
         }
         initJoystick();
-        updateFullscreenButton();
-    }, 100);
+        hideSafariBar();
+    }, 300);
 });
 
-// ===== 全屏功能 =====
-function toggleFullscreen() {
-    const btn = document.getElementById('fullscreen-btn');
-    const isCurrentlyFullscreen = btn && btn.getAttribute('data-active') === 'true';
-
-    if (!isCurrentlyFullscreen) {
-        // 进入全屏模式 - 使用Safari兼容的方式
-        // 1. 滚动到顶部，隐藏Safari地址栏
+// ===== iOS Safari 隐藏地址栏 =====
+function hideSafariBar() {
+    setTimeout(() => {
         window.scrollTo(0, 1);
-
-        // 2. 设置body标记，应用全屏样式
-        document.body.classList.add('ios-fullscreen');
-
-        // 3. 尝试使用标准API（部分浏览器支持）
-        if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(() => {
-                // Safari 不支持，回退到CSS方案
-            });
-        }
-
-        // 4. 标记按钮状态
-        if (btn) {
-            btn.setAttribute('data-active', 'true');
-            btn.textContent = '✕';
-        }
-    } else {
-        // 退出全屏
-        if (document.exitFullscreen) {
-            document.exitFullscreen().catch(() => {});
-        }
-        document.body.classList.remove('ios-fullscreen');
-        if (btn) {
-            btn.setAttribute('data-active', 'false');
-            btn.textContent = '⛶';
-        }
-    }
+    }, 100);
 }
 
-function updateFullscreenButton() {
-    const btn = document.getElementById('fullscreen-btn');
-    if (!btn) return;
+// ===== 初始化 =====
+document.addEventListener('DOMContentLoaded', () => {
+    initJoystick();
 
-    // 移动端横屏时显示全屏按钮
-    const isLandscape = window.matchMedia('(orientation: landscape)').matches;
-    const isMobile = ('ontouchstart' in window);
+    // 更新记录显示
+    document.getElementById('best-record').textContent = `${GameState.bestRecord}关`;
+    document.getElementById('last-record').textContent = `${GameState.lastRecord}关`;
+});
 
-    if (isMobile && isLandscape) {
-        btn.style.display = 'block';
-    } else {
-        btn.style.display = 'none';
-    }
-}
+// iOS Safari: 页面加载后滚动隐藏地址栏
+window.addEventListener('load', hideSafariBar);
 
 // 监听全屏状态变化
 // ===== 初始化 =====

@@ -550,44 +550,11 @@ body {
 }
 
 /* 全屏模式 */
-/* iOS全屏模式 - 使用CSS方案替代Fullscreen API */
-.ios-fullscreen #game-canvas,
-.ios-fullscreen .game-ui {
-    width: 100vw !important;
-    height: 100dvh !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    z-index: 9999;
-}
-
-.ios-fullscreen {
-    overflow: hidden !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-}
-
-/* 全屏按钮样式 */
-#fullscreen-btn {
-    padding: 6px 10px;
-    font-size: 16px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    min-width: auto;
-}
-
-/* 横屏提示 */
+/* 横屏适配 */
 @media (orientation: landscape) and (max-height: 500px) {
     #game-canvas {
         width: 100vw;
         height: 100dvh;
-    }
-
-    .ios-fullscreen #game-canvas {
-        height: 100dvh !important;
     }
 
     .game-header-ui {
