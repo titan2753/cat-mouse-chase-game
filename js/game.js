@@ -2824,6 +2824,11 @@ function exitGame() {
         cancelAnimationFrame(gameLoopId);
     }
 
+    // 更新上次记录（当前关卡）
+    GameState.lastRecord = GameState.currentLevel;
+    localStorage.setItem('catMouseGame_lastRecord', GameState.lastRecord);
+    document.getElementById('last-record').textContent = `${GameState.lastRecord}关`;
+
     switchScreen('home');
     GameState.currentLevel = 1;
 }

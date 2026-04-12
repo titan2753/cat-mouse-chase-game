@@ -160,9 +160,9 @@ function saveNickname(name) {
     localStorage.setItem('catMouseGame_nickname', name);
 }
 
-// 检查是否是首次玩游戏（没有昵称）
+// 检查是否需要输入昵称（没有昵称就提示）
 function isFirstTimePlayer() {
-    return !localStorage.getItem('catMouseGame_nickname') && !localStorage.getItem('catMouseGame_hasPlayed');
+    return !localStorage.getItem('catMouseGame_nickname');
 }
 
 // 显示昵称输入弹窗
