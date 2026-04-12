@@ -2723,24 +2723,15 @@ function switchScreen(screenName) {
 // ===== UI 交互函数 =====
 function selectRole(role) {
     soundManager.init();
-    soundManager.playClick();
 
-    GameState.selectedRole = role;
-
-    // 更新卡片样式
-    const cards = document.querySelectorAll('.role-card');
-    cards.forEach(card => {
-        card.classList.remove('selected', 'mouse-selected', 'cat-selected');
-    });
-
-    const selectedCard = document.querySelector(`.role-card[data-role="${role}"]`);
-    if (selectedCard) {
-        selectedCard.classList.add('selected', `${role}-selected`);
+    // 检查是否是首次玩游戏，需要输入昵称
+    if (isFirstTimePlayer()) {
+        showNicknameModal(role);
+        return;
     }
 
-    // 启用开始按钮
-    const startBtn = document.getElementById('start-btn');
-    startBtn.classList.remove('disabled');
+    // 直接选择角色
+    selectRoleInternal(role);
 }
 
 function startGame() {
@@ -3023,9 +3014,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 修复 iOS standalone 模式底部白边
     fixStandaloneSafeArea();
-
-    // 初始化昵称输入
-    initNicknameInput();
 
     // 初始化 CloudBase
     initCloudBase();

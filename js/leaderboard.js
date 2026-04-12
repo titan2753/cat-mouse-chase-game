@@ -7,12 +7,19 @@ const CLOUDBASE_ENV_ID = 'becareful-5gg0kklye6d3079d';
 // 初始化 CloudBase
 let tcbApp = null;
 let db = null;
+let pendingRoleSelection = null;
 
 // 初始化 CloudBase SDK
 function initCloudBase() {
     if (tcbApp) return tcbApp;
 
     try {
+        // 检查 tcb 是否已加载
+        if (typeof tcb === 'undefined') {
+            console.warn('CloudBase SDK 未加载，跳过初始化');
+            return null;
+        }
+
         tcbApp = tcb.init({
             env: CLOUDBASE_ENV_ID
         });
@@ -91,13 +98,25 @@ async function showLeaderboard() {
     // 获取排行榜数据
     const records = await getLeaderboard();
 
+    // 获取当前用户昵称
+    const userNickname = getSavedNickname();
+
     if (records.length === 0) {
-        listContainer.innerHTML = '<div class="leaderboard-empty">暂无记录，快来挑战吧！</div>';
+        listContainer.innerHTML = `
+            <div class="leaderboard-empty">暂无记录，快来挑战吧！</div>
+            ${userNickname ? `<div class="leaderboard-user-info">你的昵称：${userNickname}</div>` : ''}
+        `;
         return;
     }
 
     // 渲染排行榜
     let html = '';
+
+    // 显示用户昵称
+    if (userNickname) {
+        html += `<div class="leaderboard-user-info">你的昵称：${userNickname}</div>`;
+    }
+
     records.forEach((record, index) => {
         const rankIcon = index < 3 ? ['🥇', '🥈', '🥉'][index] : `${index + 1}`;
         const roleIcon = record.role === 'mouse' ? '🐭' : '🐱';
@@ -141,27 +160,79 @@ function saveNickname(name) {
     localStorage.setItem('catMouseGame_nickname', name);
 }
 
-// 初始化昵称输入框
-function initNicknameInput() {
-    const input = document.getElementById('nickname-input');
-    if (input) {
-        // 加载保存的昵称
-        input.value = getSavedNickname();
+// 检查是否是首次玩游戏（没有昵称）
+function isFirstTimePlayer() {
+    return !localStorage.getItem('catMouseGame_nickname') && !localStorage.getItem('catMouseGame_hasPlayed');
+}
 
-        // 监听输入，自动保存
-        input.addEventListener('input', () => {
-            saveNickname(input.value);
-        });
+// 显示昵称输入弹窗
+function showNicknameModal(role) {
+    pendingRoleSelection = role;
+    const modal = document.getElementById('nickname-modal');
+    const input = document.getElementById('nickname-input-modal');
 
-        // 监听焦点，清除占位符样式
-        input.addEventListener('focus', () => {
-            input.classList.add('focused');
-        });
+    modal.classList.add('active');
+    input.value = '';
+    input.focus();
+}
 
-        input.addEventListener('blur', () => {
-            input.classList.remove('focused');
-        });
+// 关闭昵称弹窗
+function closeNicknameModal() {
+    document.getElementById('nickname-modal').classList.remove('active');
+    pendingRoleSelection = null;
+}
+
+// 确认昵称
+function confirmNickname() {
+    const input = document.getElementById('nickname-input-modal');
+    const nickname = input.value.trim();
+
+    if (nickname) {
+        saveNickname(nickname);
     }
+
+    // 标记已玩过游戏
+    localStorage.setItem('catMouseGame_hasPlayed', 'true');
+
+    closeNicknameModal();
+
+    // 继续选择角色
+    if (pendingRoleSelection) {
+        selectRoleInternal(pendingRoleSelection);
+    }
+}
+
+// 跳过昵称输入
+function skipNickname() {
+    localStorage.setItem('catMouseGame_hasPlayed', 'true');
+    closeNicknameModal();
+
+    if (pendingRoleSelection) {
+        selectRoleInternal(pendingRoleSelection);
+    }
+}
+
+// 内部选择角色函数（不检查昵称）
+function selectRoleInternal(role) {
+    soundManager.init();
+    soundManager.playClick();
+
+    GameState.selectedRole = role;
+
+    // 更新卡片样式
+    const cards = document.querySelectorAll('.role-card');
+    cards.forEach(card => {
+        card.classList.remove('selected', 'mouse-selected', 'cat-selected');
+    });
+
+    const selectedCard = document.querySelector(`.role-card[data-role="${role}"]`);
+    if (selectedCard) {
+        selectedCard.classList.add('selected', `${role}-selected`);
+    }
+
+    // 启用开始按钮
+    const startBtn = document.getElementById('start-btn');
+    startBtn.classList.remove('disabled');
 }
 
 // 检查是否需要上传记录（只有超过或等于最佳记录才上传）

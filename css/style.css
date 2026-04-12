@@ -193,65 +193,9 @@ body {
 }
 
 /* ===== 记录卡片 ===== */
-.records-container {
-    display: flex;
-    gap: 20px;
-    width: 100%;
-    justify-content: center;
-    animation: fadeIn 0.8s ease-out 0.2s both;
-}
-
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
-}
-
-.record-card {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: 20px 30px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    box-shadow: var(--shadow-medium);
-    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-    min-width: 150px;
-}
-
-.record-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: var(--shadow-strong);
-}
-
-.record-best {
-    border: 3px solid var(--pink-bright);
-}
-
-.record-last {
-    border: 3px solid var(--purple-bright);
-}
-
-.record-icon {
-    font-size: 32px;
-}
-
-.record-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.record-label {
-    font-size: 12px;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.record-value {
-    font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--purple-deep);
 }
 
 /* ===== 角色选择 ===== */
@@ -431,31 +375,120 @@ body {
     transform: translateY(-2px);
 }
 
-/* 排行榜按钮 */
-.leaderboard-btn {
-    animation: fadeIn 0.8s ease-out 1s both;
+/* ===== 记录卡片区域（包含排行榜） ===== */
+.records-container {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    animation: fadeIn 0.8s ease-out 0.3s both;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
-/* ===== 昵称输入 ===== */
-.nickname-container {
+.record-card {
+    background: var(--white);
+    padding: 15px 20px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all var(--transition-fast);
+    min-width: 120px;
+    flex: 1;
+    max-width: 180px;
+}
+
+.record-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-medium);
+}
+
+/* 排行榜卡片样式 */
+.record-card.record-rank {
+    cursor: pointer;
+    background: linear-gradient(135deg, #fff9e6, #fff5d6);
+    border: 2px solid var(--gold);
+}
+
+.record-card.record-rank:hover {
+    background: linear-gradient(135deg, #fff5d6, #ffeb99);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.record-icon {
+    font-size: 28px;
+}
+
+.record-info {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
-    animation: fadeIn 0.8s ease-out 0.6s both;
+    gap: 4px;
 }
 
-.nickname-label {
+.record-label {
     font-family: var(--font-display);
-    font-size: 16px;
+    font-size: 12px;
+    color: #888;
+}
+
+.record-value {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
     color: var(--purple-deep);
-    margin-bottom: 10px;
+}
+
+/* ===== 昵称弹窗 ===== */
+.nickname-modal-content {
+    max-width: 300px;
+    text-align: center;
+}
+
+.nickname-input-wrapper {
+    margin: 20px 0;
+}
+
+.nickname-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.nickname-btn {
+    font-family: var(--font-display);
+    font-size: 14px;
+    padding: 10px 25px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.nickname-btn-skip {
+    background: #f0f0f0;
+    border: 2px solid #ddd;
+    color: #888;
+}
+
+.nickname-btn-skip:hover {
+    background: #e0e0e0;
+}
+
+.nickname-btn-confirm {
+    background: var(--purple-bright);
+    border: 2px solid var(--purple-deep);
+    color: var(--white);
+}
+
+.nickname-btn-confirm:hover {
+    background: var(--purple-deep);
+    transform: translateY(-2px);
 }
 
 .nickname-input {
-    width: 200px;
-    padding: 12px 20px;
-    font-size: 16px;
+    width: 100%;
+    padding: 15px 20px;
+    font-size: 18px;
     font-family: var(--font-display);
     color: var(--purple-deep);
     background: var(--white);
@@ -548,6 +581,17 @@ body {
     color: #999;
     min-width: 40px;
     text-align: right;
+}
+
+.leaderboard-user-info {
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, var(--pink-soft), var(--purple-soft));
+    border-radius: var(--radius-sm);
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 14px;
+    color: var(--purple-deep);
 }
 
 /* ===== 弹窗 ===== */
@@ -1177,6 +1221,93 @@ body {
     .end-btn {
         padding: 12px 30px;
         font-size: 15px;
+    }
+}
+
+/* 横屏首页适配 */
+@media (orientation: landscape) and (max-height: 500px) {
+    #home-screen {
+        padding: 10px 20px;
+    }
+
+    .game-header {
+        margin-bottom: 5px;
+    }
+
+    .game-title {
+        font-size: 24px;
+    }
+
+    .game-subtitle {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+
+    .records-container {
+        flex-direction: row;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .record-card {
+        flex-direction: row;
+        padding: 8px 15px;
+        min-width: auto;
+        max-width: none;
+    }
+
+    .record-icon {
+        font-size: 20px;
+    }
+
+    .record-value {
+        font-size: 16px;
+    }
+
+    .role-selection {
+        margin-bottom: 10px;
+    }
+
+    .selection-title {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .role-cards {
+        flex-direction: row;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .role-card {
+        flex-direction: column;
+        width: auto;
+        max-width: 150px;
+        padding: 10px;
+    }
+
+    .role-avatar {
+        width: 50px;
+        height: 60px;
+    }
+
+    .role-name {
+        font-size: 14px;
+    }
+
+    .role-desc {
+        font-size: 12px;
+    }
+
+    .start-button {
+        padding: 10px 25px;
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    .help-button {
+        padding: 8px 15px;
+        font-size: 12px;
     }
 }
 

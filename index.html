@@ -53,11 +53,13 @@
                         <span class="record-value" id="last-record">8关</span>
                     </div>
                 </div>
-
-            <!-- 昵称输入 -->
-            <div class="nickname-container">
-                <label class="nickname-label" for="nickname-input">你的昵称</label>
-                <input type="text" id="nickname-input" class="nickname-input" placeholder="输入昵称开始游戏" maxlength="10" autocomplete="off">
+                <div class="record-card record-rank" onclick="showLeaderboard()">
+                    <div class="record-icon">🏅</div>
+                    <div class="record-info">
+                        <span class="record-label">排行榜</span>
+                        <span class="record-value">Top 10</span>
+                    </div>
+                </div>
             </div>
 
             <div class="role-selection">
@@ -143,11 +145,20 @@
                 <span class="help-icon">📖</span>
                 <span>玩法说明</span>
             </button>
+        </div>
+    </div>
 
-            <button class="help-button leaderboard-btn" onclick="showLeaderboard()">
-                <span class="help-icon">🏆</span>
-                <span>排行榜</span>
-            </button>
+    <!-- 昵称输入弹窗 -->
+    <div id="nickname-modal" class="modal">
+        <div class="modal-content nickname-modal-content">
+            <h2 class="modal-title">请输入昵称</h2>
+            <div class="nickname-input-wrapper">
+                <input type="text" id="nickname-input-modal" class="nickname-input" placeholder="最多10个字符" maxlength="10" autocomplete="off">
+            </div>
+            <div class="nickname-buttons">
+                <button class="nickname-btn nickname-btn-skip" onclick="skipNickname()">跳过</button>
+                <button class="nickname-btn nickname-btn-confirm" onclick="confirmNickname()">确认</button>
+            </div>
         </div>
     </div>
 
