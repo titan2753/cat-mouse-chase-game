@@ -13,6 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <!-- CloudBase SDK -->
+    <script src="https://img.cloudbase.net/sdk/js/2.7.1/tcb.js"></script>
 </head>
 <body>
     <!-- 首页 -->
@@ -51,6 +53,11 @@
                         <span class="record-value" id="last-record">8关</span>
                     </div>
                 </div>
+
+            <!-- 昵称输入 -->
+            <div class="nickname-container">
+                <label class="nickname-label" for="nickname-input">你的昵称</label>
+                <input type="text" id="nickname-input" class="nickname-input" placeholder="输入昵称开始游戏" maxlength="10" autocomplete="off">
             </div>
 
             <div class="role-selection">
@@ -136,6 +143,11 @@
                 <span class="help-icon">📖</span>
                 <span>玩法说明</span>
             </button>
+
+            <button class="help-button leaderboard-btn" onclick="showLeaderboard()">
+                <span class="help-icon">🏆</span>
+                <span>排行榜</span>
+            </button>
         </div>
     </div>
 
@@ -166,6 +178,17 @@
                 游戏创意：糖糖
             </div>
             <button class="modal-close" onclick="closeHelp()">关闭</button>
+        </div>
+    </div>
+
+    <!-- 排行榜弹窗 -->
+    <div id="leaderboard-modal" class="modal">
+        <div class="modal-content leaderboard-content">
+            <h2 class="modal-title">🏆 排行榜</h2>
+            <div id="leaderboard-list" class="leaderboard-list">
+                <div class="leaderboard-loading">加载中...</div>
+            </div>
+            <button class="modal-close" onclick="closeLeaderboard()">关闭</button>
         </div>
     </div>
 
@@ -260,6 +283,7 @@
             });
         }
     </script>
+    <script src="js/leaderboard.js"></script>
     <script src="js/game.js"></script>
 </body>
 </html>

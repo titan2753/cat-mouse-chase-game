@@ -2649,6 +2649,9 @@ function endGame(playerWins, result) {
         // 保存到 localStorage
         localStorage.setItem('catMouseGame_bestRecord', GameState.bestRecord);
         localStorage.setItem('catMouseGame_lastRecord', GameState.lastRecord);
+
+        // 上传到排行榜（异步，不阻塞）
+        uploadRecord(getSavedNickname(), GameState.currentLevel, GameState.selectedRole);
     }
 
     // 显示结束画面
@@ -3020,6 +3023,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 修复 iOS standalone 模式底部白边
     fixStandaloneSafeArea();
+
+    // 初始化昵称输入
+    initNicknameInput();
+
+    // 初始化 CloudBase
+    initCloudBase();
 });
 
 // 修复 iOS standalone 模式安全区域白边

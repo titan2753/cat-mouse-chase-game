@@ -17,7 +17,28 @@
       "Bash(GIT_SSL_NO_VERIFY=true git push:*)",
       "Bash(curl -I https://github.com)",
       "Bash(brew install:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(git checkout:*)",
+      "Bash(git reset:*)",
+      "Bash(curl -X POST \"https://api.vercel.com/v1/integrations/deploy/prj_becareful\")",
+      "WebFetch(domain:github.com)",
+      "mcp__plugin_github_github__get_file_contents",
+      "Bash(npx:*)",
+      "Read(//Users/liyi/.claude/**)",
+      "Read(//private/tmp/vibe-eyes/**)",
+      "Bash(npm install:*)",
+      "Read(//tmp/**)",
+      "Bash(node mcp.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080)",
+      "Bash(python3 -m http.server 8080)",
+      "WebFetch(domain:docs.cloudbase.net)",
+      "WebSearch",
+      "Bash(tcb login:*)",
+      "Bash(tcb init:*)",
+      "Bash(tcb hosting:*)",
+      "Bash(chmod +x:*)",
+      "Bash(tcb database:*)",
+      "Bash(tcb db:*)"
     ]
   }
 }
