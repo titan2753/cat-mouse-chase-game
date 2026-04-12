@@ -38,7 +38,8 @@
       "Bash(tcb hosting:*)",
       "Bash(chmod +x:*)",
       "Bash(tcb database:*)",
-      "Bash(tcb db:*)"
+      "Bash(tcb db:*)",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__list_pages"
     ]
   }
 }
